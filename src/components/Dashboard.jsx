@@ -7,6 +7,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { calculateAreaStats, getRiskLevel, formatCurrency } from '@/lib/calculations';
 import { CompanyBadge } from '@/components/CompanyBadge';
+import { getCompanyData } from '@/lib/supabase';
 
 // Memoized Sub-components
 const KPICard = React.memo(({ title, value, subtext, icon: Icon, color, trend }) => (
@@ -58,37 +59,59 @@ const Dashboard = ({ currentUser }) => {
   });
   const [loading, setLoading] = useState(true);
 
-  // Load Data - Filtered by Company (unless admin)
+  // Load Data - Filtered by Company (unless admin) - Using Supabase
   useEffect(() => {
-    const loadAllData = () => {
+    const loadAllData = async () => {
       try {
+        setLoading(true);
         const isAdmin = currentUser?.roleId === 'admin';
         const companyId = currentUser?.companyId;
-        const allAreas = JSON.parse(localStorage.getItem('strategicAreas') || '[]');
-        const allObjectives = JSON.parse(localStorage.getItem('strategicObjectives') || '[]');
-        const allTargets = JSON.parse(localStorage.getItem('targets') || '[]');
-        const allIndicators = JSON.parse(localStorage.getItem('indicators') || '[]');
-        const allActivities = JSON.parse(localStorage.getItem('activities') || '[]');
-        const allRisks = JSON.parse(localStorage.getItem('risks') || '[]');
-        const allExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
-        const allBudgetChapters = JSON.parse(localStorage.getItem('budgetChapters') || '[]');
+        const userId = currentUser?.id || currentUser?.userId;
 
-        // Admin sees all data, others see only their company
-        const filterByCompany = (arr) => {
-          if (isAdmin) return arr; // Admin sees all companies
-          if (!companyId) return arr; // Backward compatibility
-          return arr.filter(item => item.companyId === companyId);
+        // Load data from Supabase (with localStorage fallback)
+        const [areas, objectives, targets, indicators, activities, risks, expenses, budgetChapters] = await Promise.all([
+          getCompanyData('strategic_areas', userId, companyId, isAdmin),
+          getCompanyData('strategic_objectives', userId, companyId, isAdmin),
+          getCompanyData('targets', userId, companyId, isAdmin),
+          getCompanyData('indicators', userId, companyId, isAdmin),
+          getCompanyData('activities', userId, companyId, isAdmin),
+          getCompanyData('risks', userId, companyId, isAdmin),
+          getCompanyData('expenses', userId, companyId, isAdmin),
+          getCompanyData('budget_chapters', userId, companyId, isAdmin),
+        ]);
+
+        // Map Supabase data to match localStorage format (for backward compatibility)
+        const mapSupabaseToLocal = (items) => {
+          return items.map(item => ({
+            ...item,
+            // Map snake_case to camelCase for compatibility
+            companyId: item.company_id || item.companyId,
+            organizationId: item.organization_id || item.organizationId,
+            unitId: item.unit_id || item.unitId,
+            strategicAreaId: item.strategic_area_id || item.strategicAreaId,
+            objectiveId: item.objective_id || item.objectiveId,
+            targetId: item.target_id || item.targetId,
+            indicatorId: item.indicator_id || item.indicatorId,
+            budgetChapterId: item.budget_chapter_id || item.budgetChapterId,
+            plannedBudget: item.planned_budget || item.plannedBudget,
+            actualBudget: item.actual_budget || item.actualBudget,
+            targetValue: item.target_value || item.targetValue,
+            actualValue: item.actual_value || item.actualValue,
+            completionPercentage: item.completion_percentage || item.completionPercentage,
+            startDate: item.start_date || item.startDate,
+            endDate: item.end_date || item.endDate,
+          }));
         };
 
         const newData = {
-          areas: filterByCompany(allAreas),
-          objectives: filterByCompany(allObjectives),
-          targets: filterByCompany(allTargets),
-          indicators: filterByCompany(allIndicators),
-          activities: filterByCompany(allActivities),
-          risks: filterByCompany(allRisks),
-          expenses: filterByCompany(allExpenses),
-          budgetChapters: filterByCompany(allBudgetChapters),
+          areas: mapSupabaseToLocal(areas),
+          objectives: mapSupabaseToLocal(objectives),
+          targets: mapSupabaseToLocal(targets),
+          indicators: mapSupabaseToLocal(indicators),
+          activities: mapSupabaseToLocal(activities),
+          risks: mapSupabaseToLocal(risks),
+          expenses: mapSupabaseToLocal(expenses),
+          budgetChapters: mapSupabaseToLocal(budgetChapters),
         };
         setData(newData);
       } catch (e) {
@@ -98,8 +121,12 @@ const Dashboard = ({ currentUser }) => {
       }
     };
     
-    loadAllData();
-  }, [currentUser?.companyId, currentUser?.roleId]);
+    if (currentUser) {
+      loadAllData();
+    } else {
+      setLoading(false);
+    }
+  }, [currentUser?.companyId, currentUser?.roleId, currentUser?.id, currentUser?.userId]);
 
   // Calculations - Already filtered by company in loadAllData
   const calculatedHierarchy = useMemo(() => {
