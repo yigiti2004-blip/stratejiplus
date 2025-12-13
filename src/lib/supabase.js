@@ -76,6 +76,12 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
     budget_chapters: ['id', 'code', 'name', 'company_id', 'created_at', 'updated_at'],
   };
 
+  // Validate companyId exists
+  if (!companyId) {
+    console.error('No companyId provided for insert');
+    return { data: null, error: { message: 'Company ID is required' } };
+  }
+
   // Map camelCase to snake_case for Supabase
   const snakeCaseData = {
     ...data,
