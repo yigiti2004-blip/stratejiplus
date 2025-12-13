@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StratejiPlus - Database Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .table-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .table-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        .table-content {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+        .empty {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-style: italic;
+        }
+        .stats {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            color: white;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            padding: 40px;
+        }
+        .error {
+            background: #ff4444;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ StratejiPlus Database Viewer</h1>
+        
+        <div id="loading" class="loading">Loading database data...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div id="stats" class="stats" style="display: none;">
+            <h2 style="margin-bottom: 15px; color: #667eea;">📊 Database Statistics</h2>
+            <div class="stats-grid" id="statsGrid"></div>
+        </div>
+        
+        <div id="tables" class="tables-grid" style="display: none;"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        
+        async function fetchData(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching ${endpoint}:`, error);
+                return null;
+            }
+        }
+
+        function createTableCard(title, data, columns) {
+            if (!data || data.length === 0) {
+                return `
+                    <div class="table-card">
+                        <div class="table-title">${title}</div>
+                        <div class="empty">No data available</div>
+                    </div>
+                `;
+            }
+
+            const headers = columns.map(col => `<th>${col}</th>`).join('');
+            const rows = data.map(row => {
+                const cells = columns.map(col => {
+                    let value = row[col];
+                    if (value === null || value === undefined) value = '-';
+                    if (typeof value === 'boolean') value = value ? 'Yes' : 'No';
+                    if (value && typeof value === 'object') value = JSON.stringify(value);
+                    return `<td>${value}</td>`;
+                }).join('');
+                return `<tr>${cells}</tr>`;
+            }).join('');
+
+            return `
+                <div class="table-card">
+                    <div class="table-title">${title} (${data.length} records)</div>
+                    <div class="table-content">
+                        <table>
+                            <thead>${headers}</thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadData() {
+            try {
+                // Fetch all data
+                const [users, units] = await Promise.all([
+                    fetchData('/users'),
+                    fetchData('/units')
+                ]);
+
+                // Check if API is available
+                if (users === null && units === null) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error').style.display = 'block';
+                    document.getElementById('error').textContent = 
+                        '❌ Cannot connect to API server. Make sure it\'s running: npm run server';
+                    return;
+                }
+
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('tables').style.display = 'grid';
+                document.getElementById('stats').style.display = 'block';
+
+                // Create stats
+                const statsGrid = document.getElementById('statsGrid');
+                statsGrid.innerHTML = `
+                    <div class="stat-item">
+                        <div class="stat-number">${users?.length || 0}</div>
+                        <div class="stat-label">Users</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${units?.length || 0}</div>
+                        <div class="stat-label">Units</div>
+                    </div>
+                `;
+
+                // Create tables
+                const tablesDiv = document.getElementById('tables');
+                let html = '';
+
+                if (users) {
+                    html += createTableCard('👥 Users', users, [
+                        'user_id', 'full_name', 'email', 'role_id', 'status'
+                    ]);
+                }
+
+                if (units) {
+                    html += createTableCard('🏢 Units', units, [
+                        'unit_id', 'unit_name', 'unit_code', 'status'
+                    ]);
+                }
+
+                tablesDiv.innerHTML = html;
+
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = 
+                    `Error: ${error.message}. Make sure API server is running (npm run server)`;
+            }
+        }
+
+        // Load data on page load
+        loadData();
+
+        // Refresh every 5 seconds
+        setInterval(loadData, 5000);
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,81 @@
+═══════════════════════════════════════════════════════════════
+  ⚠️  THE APP CANNOT RUN WITHOUT NODE.JS INSTALLED  ⚠️
+═══════════════════════════════════════════════════════════════
+
+CURRENT STATUS: Node.js is NOT installed on your system.
+
+═══════════════════════════════════════════════════════════════
+  STEP 1: INSTALL NODE.JS
+═══════════════════════════════════════════════════════════════
+
+EASIEST WAY (Recommended):
+1. Open your web browser
+2. Go to: https://nodejs.org/
+3. Click the big green "Download Node.js (LTS)" button
+4. Run the downloaded file (it will be a .pkg file)
+5. Follow the installation wizard
+6. RESTART YOUR TERMINAL after installation
+
+ALTERNATIVE (If you have Homebrew):
+Open Terminal and run:
+  brew install node
+
+═══════════════════════════════════════════════════════════════
+  STEP 2: VERIFY INSTALLATION
+═══════════════════════════════════════════════════════════════
+
+Open a NEW terminal window and type:
+  node --version
+
+You should see something like: v20.x.x or v18.x.x
+If you see "command not found", Node.js is not installed correctly.
+
+═══════════════════════════════════════════════════════════════
+  STEP 3: INSTALL PROJECT DEPENDENCIES
+═══════════════════════════════════════════════════════════════
+
+In Terminal, run:
+  cd /Users/yigitilseven/Desktop/sp
+  npm install
+
+Wait for it to finish (this takes 1-3 minutes).
+
+═══════════════════════════════════════════════════════════════
+  STEP 4: START THE SERVER
+═══════════════════════════════════════════════════════════════
+
+In Terminal, run:
+  npm run dev
+
+You will see output like this:
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://192.168.1.111:3000/
+
+═══════════════════════════════════════════════════════════════
+  STEP 5: OPEN IN SAFARI
+═══════════════════════════════════════════════════════════════
+
+Copy the EXACT URL from the terminal output and paste it into Safari.
+
+Or try these URLs (one at a time):
+  • http://localhost:3000
+  • http://127.0.0.1:3000
+  • http://192.168.1.111:3000 (use the IP shown in your terminal)
+
+═══════════════════════════════════════════════════════════════
+  LOGIN CREDENTIALS
+═══════════════════════════════════════════════════════════════
+
+Email:    admin@stratejiplus.com
+Password: admin123
+
+═══════════════════════════════════════════════════════════════
+
+IMPORTANT NOTES:
+• The server MUST be running for the app to work
+• Keep the terminal window open while using the app
+• If you close the terminal, the server stops
+• The URL must start with "http://" (not "https://")
+
+═══════════════════════════════════════════════════════════════
+

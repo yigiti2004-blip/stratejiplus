@@ -1,0 +1,570 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  /* Fix for select elements - ensure text is always visible on light backgrounds */
+  select:not([class*="bg-gray-"]):not([class*="bg-"]):not([class*="text-"]) {
+    color: rgb(17 24 39) !important; /* text-gray-900 */
+    background-color: white !important;
+  }
+
+  select option {
+    color: rgb(17 24 39) !important;
+    background-color: white !important;
+  }
+
+  /* Fix for select elements in light containers */
+  .bg-white select:not([class*="text-"]),
+  .bg-gray-50 select:not([class*="text-"]),
+  .bg-gray-100 select:not([class*="text-"]) {
+    color: rgb(17 24 39) !important;
+    background-color: white !important;
+  }
+ 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Scrollbar Styling for Sapma Analizi Cards */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #232833;
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4B5563;
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6B7280;
+}
+
+/* Toast Notification Global Fixes */
+.toast,
+.toast-success,
+.toast-message,
+.notification,
+[role="alert"],
+[role="status"] {
+  color: #111 !important;
+  background: #ffffff !important;
+  opacity: 1 !important;
+  z-index: 99999 !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.toast-error,
+.notification-error {
+  color: #ffffff !important;
+  background: #e53935 !important;
+  border: 1px solid #c62828 !important;
+}
+
+.toast-warning,
+.notification-warning {
+  color: #111 !important;
+  background: #fff3cd !important;
+  border: 1px solid #ffc107 !important;
+}
+
+/* Custom toast container styles */
+#toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.custom-toast {
+  pointer-events: auto;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+
+/* ===== BUDGET MANAGEMENT ===== */
+
+.budget-management {
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 12px;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 500;
+  color: #6b7280;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab.active {
+  color: #1f2937;
+  border-bottom-color: #3b82f6;
+  font-weight: 600;
+}
+
+.tab:hover {
+  color: #374151;
+}
+
+/* Section Headers */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Tab Content */
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ===== FASIL PERFORMANSI SECTION ===== */
+
+.fasil-performans {
+  margin-bottom: 24px;
+}
+
+.fasil-performans h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.fasil-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+/* Fasil Cards */
+.fasil-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.fasil-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.fasil-card.fasil-yeşil {
+  border-left: 4px solid #10b981;
+}
+
+.fasil-card.fasil-sarı {
+  border-left: 4px solid #f59e0b;
+  background: #fffbeb;
+}
+
+.fasil-card.fasil-kırmızı {
+  border-left: 4px solid #ef4444;
+  background: #fef2f2;
+}
+
+/* Fasil Card Header */
+.fasil-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.fasil-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.fasil-header p {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+/* Fasil Stats */
+.fasil-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.stat span:first-child {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.stat span:last-child {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #3b82f6);
+  transition: width 0.3s ease;
+}
+
+.progress-label {
+  font-size: 12px;
+  color: #374151;
+  text-align: right;
+  font-weight: 500;
+}
+
+/* ===== HARCAMA LISTESI SECTION ===== */
+
+.harcama-listesi {
+  margin-top: 20px;
+}
+
+.harcama-listesi h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ===== FASIL LISTESI SECTION ===== */
+
+.fasil-listesi {
+  margin-top: 20px;
+}
+
+.fasil-listesi h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ===== TABLE RESPONSIVE ===== */
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+/* ===== DATA TABLE ===== */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+}
+
+.data-table thead {
+  background: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.data-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 13px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.data-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.data-table .code {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.data-table .actions {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* ===== BUTTONS ===== */
+
+.btn {
+  padding: 10px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.btn-secondary:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+  font-weight: 600;
+}
+
+.btn-icon:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  color: #111827;
+}
+
+/* ===== BADGES ===== */
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-yeşil {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-sarı {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-kırmızı {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-aktif {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-pasif {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* ===== FORM STYLING ===== */
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  background-color: #ffffff;
+  color: #111827;
+  font-weight: 500;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* ===== MODAL STYLING ===== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+  .fasil-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .data-table {
+    font-size: 12px;
+  }
+}

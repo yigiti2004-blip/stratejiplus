@@ -1,0 +1,14 @@
+ annual_work_plan_items | ❌ DISABLED |            0
+ budget_chapters        | ❌ DISABLED |            0
+ indicators             | ❌ DISABLED |            0
+ revisions              | ❌ DISABLED |            0
+ risk_action_plans      | ❌ DISABLED |            0
+ risk_monitoring_logs   | ❌ DISABLED |            0
+ risk_projects          | ❌ DISABLED |            0
+ risks                  | ❌ DISABLED |            0
+ strategic_areas        | ❌ DISABLED |            0
+ strategic_objectives   | ❌ DISABLED |            0
+ targets                | ❌ DISABLED |            0
+ units                  | ❌ DISABLED |            0
+ users                  | ❌ DISABLED |            0
+

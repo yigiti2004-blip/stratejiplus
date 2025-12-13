@@ -1,0 +1,10 @@
+{
+  "name": "Local PostgreSQL",
+  "host": "localhost",
+  "port": 5432,
+  "maintenance_db": "postgres",
+  "username": "yigitilseven",
+  "password": "",
+  "database": "stratejiplus"
+}
+
