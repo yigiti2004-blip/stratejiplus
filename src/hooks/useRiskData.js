@@ -1,90 +1,226 @@
 import { useState, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuthContext } from './useAuthContext';
+import { getCompanyData, insertCompanyData, updateCompanyData, deleteCompanyData } from '@/lib/supabase';
 
 export const useRiskData = () => {
   const { currentUser } = useAuthContext();
   const [risks, setRisks] = useState([]);
   const [projects, setProjects] = useState([]);
   
-  // Load data on mount - filtered by company
+  // Load data from Supabase - filtered by company
   useEffect(() => {
-    const companyId = currentUser?.companyId;
-    const allRisks = JSON.parse(localStorage.getItem('risks') || '[]');
-    const allProjects = JSON.parse(localStorage.getItem('risk_projects') || '[]');
-    
-    // Filter by company_id
-    const filterByCompany = (arr) => {
-      if (!companyId) return arr; // Backward compatibility
-      return arr.filter(item => item.companyId === companyId);
+    const loadData = async () => {
+      if (!currentUser) return;
+      
+      const companyId = currentUser?.companyId;
+      const userId = currentUser?.id || currentUser?.userId;
+      const isAdmin = currentUser?.roleId === 'admin';
+
+      try {
+        const [risksData, projectsData] = await Promise.all([
+          getCompanyData('risks', userId, companyId, isAdmin),
+          getCompanyData('risk_projects', userId, companyId, isAdmin),
+        ]);
+
+        // Map snake_case to camelCase
+        const mapRisk = (item) => ({
+          ...item,
+          companyId: item.company_id || item.companyId,
+          actionPlans: item.action_plans || item.actionPlans || [],
+          monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
+        });
+
+        const mapProject = (item) => ({
+          ...item,
+          companyId: item.company_id || item.companyId,
+        });
+
+        setRisks(risksData.map(mapRisk));
+        setProjects(projectsData.map(mapProject));
+      } catch (error) {
+        console.error('Error loading risk data:', error);
+      }
     };
-    
-    setRisks(filterByCompany(allRisks));
-    setProjects(filterByCompany(allProjects));
-  }, [currentUser?.companyId]);
 
-  // Sync with localStorage
-  useEffect(() => {
-    localStorage.setItem('risks', JSON.stringify(risks));
-  }, [risks]);
-
-  useEffect(() => {
-    localStorage.setItem('risk_projects', JSON.stringify(projects));
-  }, [projects]);
+    loadData();
+  }, [currentUser?.companyId, currentUser?.id, currentUser?.userId, currentUser?.roleId]);
 
   // --- RISK OPERATIONS ---
-  const addRisk = (riskData) => {
+  const addRisk = async (riskData) => {
+    const userId = currentUser?.id || currentUser?.userId;
+    const companyId = currentUser?.companyId;
+    
     const newRisk = {
       ...riskData,
       id: riskData.id || uuidv4(),
-      companyId: currentUser?.companyId, // Add company_id
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
       score: Number(riskData.probability) * Number(riskData.impact),
-      actionPlans: [],
-      monitoringLogs: []
+      action_plans: [],
+      monitoring_logs: []
     };
-    setRisks(prev => [newRisk, ...prev]);
-    // Also save to localStorage with all risks
-    const allRisks = JSON.parse(localStorage.getItem('risks') || '[]');
-    allRisks.push(newRisk);
-    localStorage.setItem('risks', JSON.stringify(allRisks));
-    return newRisk;
+
+    const { data, error } = await insertCompanyData('risks', newRisk, userId, companyId);
+    
+    if (error) {
+      console.error('Error adding risk:', error);
+      return null;
+    }
+
+    // Refresh data
+    const [risksData] = await Promise.all([
+      getCompanyData('risks', userId, companyId, currentUser?.roleId === 'admin'),
+    ]);
+    
+    const mapRisk = (item) => ({
+      ...item,
+      companyId: item.company_id || item.companyId,
+      actionPlans: item.action_plans || item.actionPlans || [],
+      monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
+    });
+    
+    setRisks(risksData.map(mapRisk));
+    return data;
   };
 
-  const updateRisk = (id, updates) => {
-    setRisks(prev => prev.map(r => {
-      if (r.id === id) {
-        const updated = { ...r, ...updates, updatedAt: new Date().toISOString() };
-        if (updates.probability || updates.impact) {
-          updated.score = Number(updated.probability || r.probability) * Number(updated.impact || r.impact);
-        }
-        return updated;
-      }
-      return r;
-    }));
+  const updateRisk = async (id, updates) => {
+    const userId = currentUser?.id || currentUser?.userId;
+    
+    const updateData = { ...updates };
+    if (updates.probability || updates.impact) {
+      updateData.score = Number(updates.probability || risks.find(r => r.id === id)?.probability) * 
+                         Number(updates.impact || risks.find(r => r.id === id)?.impact);
+    }
+
+    const { error } = await updateCompanyData('risks', id, updateData, userId);
+    
+    if (error) {
+      console.error('Error updating risk:', error);
+      return;
+    }
+
+    // Refresh data
+    const companyId = currentUser?.companyId;
+    const isAdmin = currentUser?.roleId === 'admin';
+    const [risksData] = await Promise.all([
+      getCompanyData('risks', userId, companyId, isAdmin),
+    ]);
+    
+    const mapRisk = (item) => ({
+      ...item,
+      companyId: item.company_id || item.companyId,
+      actionPlans: item.action_plans || item.actionPlans || [],
+      monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
+    });
+    
+    setRisks(risksData.map(mapRisk));
   };
 
-  const deleteRisk = (id) => {
-    setRisks(prev => prev.filter(r => r.id !== id));
+  const deleteRisk = async (id) => {
+    const userId = currentUser?.id || currentUser?.userId;
+    
+    const { error } = await deleteCompanyData('risks', id, userId);
+    
+    if (error) {
+      console.error('Error deleting risk:', error);
+      return;
+    }
+
+    // Refresh data
+    const companyId = currentUser?.companyId;
+    const isAdmin = currentUser?.roleId === 'admin';
+    const [risksData] = await Promise.all([
+      getCompanyData('risks', userId, companyId, isAdmin),
+    ]);
+    
+    const mapRisk = (item) => ({
+      ...item,
+      companyId: item.company_id || item.companyId,
+      actionPlans: item.action_plans || item.actionPlans || [],
+      monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
+    });
+    
+    setRisks(risksData.map(mapRisk));
   };
 
   // --- PROJECT OPERATIONS ---
-  const addProject = (projectData) => {
+  const addProject = async (projectData) => {
+    const userId = currentUser?.id || currentUser?.userId;
+    const companyId = currentUser?.companyId;
+    
     const newProject = {
       ...projectData,
       id: uuidv4(),
-      createdAt: new Date().toISOString()
     };
-    setProjects(prev => [...prev, newProject]);
+
+    const { error } = await insertCompanyData('risk_projects', newProject, userId, companyId);
+    
+    if (error) {
+      console.error('Error adding project:', error);
+      return;
+    }
+
+    // Refresh data
+    const isAdmin = currentUser?.roleId === 'admin';
+    const [projectsData] = await Promise.all([
+      getCompanyData('risk_projects', userId, companyId, isAdmin),
+    ]);
+    
+    const mapProject = (item) => ({
+      ...item,
+      companyId: item.company_id || item.companyId,
+    });
+    
+    setProjects(projectsData.map(mapProject));
   };
 
-  const updateProject = (id, updates) => {
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+  const updateProject = async (id, updates) => {
+    const userId = currentUser?.id || currentUser?.userId;
+    
+    const { error } = await updateCompanyData('risk_projects', id, updates, userId);
+    
+    if (error) {
+      console.error('Error updating project:', error);
+      return;
+    }
+
+    // Refresh data
+    const companyId = currentUser?.companyId;
+    const isAdmin = currentUser?.roleId === 'admin';
+    const [projectsData] = await Promise.all([
+      getCompanyData('risk_projects', userId, companyId, isAdmin),
+    ]);
+    
+    const mapProject = (item) => ({
+      ...item,
+      companyId: item.company_id || item.companyId,
+    });
+    
+    setProjects(projectsData.map(mapProject));
   };
 
-  const deleteProject = (id) => {
-    setProjects(prev => prev.filter(p => p.id !== id));
+  const deleteProject = async (id) => {
+    const userId = currentUser?.id || currentUser?.userId;
+    
+    const { error } = await deleteCompanyData('risk_projects', id, userId);
+    
+    if (error) {
+      console.error('Error deleting project:', error);
+      return;
+    }
+
+    // Refresh data
+    const companyId = currentUser?.companyId;
+    const isAdmin = currentUser?.roleId === 'admin';
+    const [projectsData] = await Promise.all([
+      getCompanyData('risk_projects', userId, companyId, isAdmin),
+    ]);
+    
+    const mapProject = (item) => ({
+      ...item,
+      companyId: item.company_id || item.companyId,
+    });
+    
+    setProjects(projectsData.map(mapProject));
   };
 
   // --- SUB-MODULE OPERATIONS ---

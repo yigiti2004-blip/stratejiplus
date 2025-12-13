@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus, ShieldAlert } from 'lucide-react';
 import { useRiskData } from '@/hooks/useRiskData';
+import { useAuthContext } from '@/hooks/useAuthContext';
+import { getCompanyData } from '@/lib/supabase';
 
 // Sub Components
 import RiskDashboard from './RiskDashboard';
@@ -12,10 +14,18 @@ import ProjectDefinitions from './ProjectDefinitions';
 import RiskForm from './RiskForm';
 
 const RiskModule = () => {
+  const { currentUser } = useAuthContext();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedRisk, setSelectedRisk] = useState(null); // For detail view
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRisk, setEditingRisk] = useState(null);
+  const [spData, setSpData] = useState({
+    'Stratejik Alan': [],
+    'Amaç': [],
+    'Hedef': [],
+    'Gösterge': [],
+    'Faaliyet': []
+  });
 
   // Hook for all data operations
   const { 
@@ -26,14 +36,48 @@ const RiskModule = () => {
     addMonitoringLog
   } = useRiskData();
 
-  // Load SP Data for relationships (Read-Only)
-  const spData = {
-     'Stratejik Alan': JSON.parse(localStorage.getItem('strategicAreas') || '[]'),
-     'Amaç': JSON.parse(localStorage.getItem('strategicObjectives') || '[]'),
-     'Hedef': JSON.parse(localStorage.getItem('targets') || '[]'),
-     'Gösterge': JSON.parse(localStorage.getItem('indicators') || '[]'),
-     'Faaliyet': JSON.parse(localStorage.getItem('activities') || '[]')
-  };
+  // Load SP Data from Supabase for relationships (Read-Only)
+  useEffect(() => {
+    const loadSpData = async () => {
+      if (!currentUser) return;
+      
+      const companyId = currentUser?.companyId;
+      const userId = currentUser?.id || currentUser?.userId;
+      const isAdmin = currentUser?.roleId === 'admin';
+
+      try {
+        const [areas, objectives, targets, indicators, activities] = await Promise.all([
+          getCompanyData('strategic_areas', userId, companyId, isAdmin),
+          getCompanyData('strategic_objectives', userId, companyId, isAdmin),
+          getCompanyData('targets', userId, companyId, isAdmin),
+          getCompanyData('indicators', userId, companyId, isAdmin),
+          getCompanyData('activities', userId, companyId, isAdmin),
+        ]);
+
+        // Map to camelCase
+        const mapData = (items) => items.map(item => ({
+          ...item,
+          companyId: item.company_id || item.companyId,
+          strategicAreaId: item.strategic_area_id || item.strategicAreaId,
+          objectiveId: item.objective_id || item.objectiveId,
+          targetId: item.target_id || item.targetId,
+          indicatorId: item.indicator_id || item.indicatorId,
+        }));
+
+        setSpData({
+          'Stratejik Alan': mapData(areas),
+          'Amaç': mapData(objectives),
+          'Hedef': mapData(targets),
+          'Gösterge': mapData(indicators),
+          'Faaliyet': mapData(activities)
+        });
+      } catch (error) {
+        console.error('Error loading SP data:', error);
+      }
+    };
+
+    loadSpData();
+  }, [currentUser?.companyId, currentUser?.id, currentUser?.userId]);
 
   // --- Handlers ---
   const handleOpenForm = (risk = null) => {
