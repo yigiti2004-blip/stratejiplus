@@ -64,6 +64,18 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
 
   await setUserContext(userId);
 
+  // Define valid columns for each table (to filter out invalid fields)
+  const validColumns = {
+    strategic_areas: ['id', 'code', 'name', 'organization_id', 'responsible_unit', 'description', 'company_id', 'created_at', 'updated_at'],
+    strategic_objectives: ['id', 'code', 'name', 'strategic_area_id', 'responsible_unit', 'description', 'company_id', 'created_at', 'updated_at'],
+    targets: ['id', 'code', 'name', 'objective_id', 'responsible_unit', 'target_value', 'actual_value', 'completion_percentage', 'company_id', 'created_at', 'updated_at'],
+    indicators: ['id', 'code', 'name', 'target_id', 'target_value', 'actual_value', 'unit', 'measurement_type', 'frequency', 'responsible_unit', 'company_id', 'created_at', 'updated_at'],
+    activities: ['id', 'code', 'name', 'indicator_id', 'target_id', 'responsible_unit', 'planned_budget', 'actual_budget', 'start_date', 'end_date', 'status', 'completion', 'company_id', 'created_at', 'updated_at'],
+    risks: ['id', 'name', 'risk_type', 'description', 'probability', 'impact', 'score', 'status', 'responsible', 'related_record_type', 'related_record_id', 'company_id', 'created_at', 'updated_at'],
+    expenses: ['id', 'budget_chapter_id', 'activity_id', 'description', 'amount', 'total_amount', 'expense_date', 'status', 'company_id', 'created_at', 'updated_at'],
+    budget_chapters: ['id', 'code', 'name', 'company_id', 'created_at', 'updated_at'],
+  };
+
   // Map camelCase to snake_case for Supabase
   const snakeCaseData = {
     ...data,
@@ -82,12 +94,12 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
     actual_value: data.actualValue !== undefined ? data.actualValue : (data.actual_value !== undefined ? data.actual_value : null),
     start_date: data.startDate || data.start_date || null,
     end_date: data.endDate || data.end_date || null,
-    // Ensure required fields for strategic_areas
+    // Ensure required fields
     code: data.code || data.id || `SA-${Date.now()}`,
     name: data.name || '',
   };
 
-  // Remove camelCase duplicates and empty strings
+  // Remove camelCase duplicates
   delete snakeCaseData.organizationId;
   delete snakeCaseData.strategicAreaId;
   delete snakeCaseData.objectiveId;
@@ -103,25 +115,36 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
   delete snakeCaseData.endDate;
   delete snakeCaseData.companyId;
   
-  // Remove empty strings (Supabase doesn't like them for some fields)
+  // Filter out fields that don't exist in the table schema
+  const validFields = validColumns[table] || Object.keys(snakeCaseData);
+  const filteredData = {};
+  
+  validFields.forEach(field => {
+    if (snakeCaseData.hasOwnProperty(field)) {
+      const value = snakeCaseData[field];
+      // Convert empty strings to null, keep arrays/objects as is for now
+      if (value === '') {
+        filteredData[field] = null;
+      } else if (value !== undefined && value !== null) {
+        filteredData[field] = value;
+      }
+    }
+  });
+  
+  // Remove fields that are arrays/objects if they're not in valid columns (like responsiblePersons)
   Object.keys(snakeCaseData).forEach(key => {
-    if (snakeCaseData[key] === '') {
-      snakeCaseData[key] = null;
+    if (!validFields.includes(key)) {
+      // Skip fields not in schema (like shortName, responsiblePersons, etc.)
+      console.debug(`Skipping field not in schema: ${key}`);
     }
   });
 
-  console.log('Inserting into', table, ':', snakeCaseData);
-
-  // Remove undefined/null values that might cause issues
-  Object.keys(snakeCaseData).forEach(key => {
-    if (snakeCaseData[key] === undefined || snakeCaseData[key] === null || snakeCaseData[key] === '') {
-      delete snakeCaseData[key];
-    }
-  });
+  console.log('Inserting into', table, ':', filteredData);
+  console.log('Valid fields for', table, ':', validFields);
 
   const { data: result, error } = await supabase
     .from(table)
-    .insert([snakeCaseData])
+    .insert([filteredData])
     .select()
     .single();
 
