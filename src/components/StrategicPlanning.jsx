@@ -6,6 +6,7 @@ import EditItemModal from '@/components/EditItemModal';
 import { TreeNode } from '@/components/sp/TreeNode';
 import { showSuccessToast } from '@/lib/toast';
 import { useAuthContext } from '@/hooks/useAuthContext';
+import { getCompanyData, updateCompanyData } from '@/lib/supabase';
 
 const StrategicPlanning = ({ currentUser: propCurrentUser }) => {
   const { currentUser: authCurrentUser } = useAuthContext();
@@ -46,28 +47,39 @@ const StrategicPlanning = ({ currentUser: propCurrentUser }) => {
     }));
   };
 
-  const loadData = () => {
+  const loadData = async () => {
     try {
       const companyId = currentUser?.companyId;
-      const allAreas = JSON.parse(localStorage.getItem('strategicAreas') || '[]');
-      const allObjectives = JSON.parse(localStorage.getItem('strategicObjectives') || '[]');
-      const allTargets = JSON.parse(localStorage.getItem('targets') || '[]');
-      const allIndicators = JSON.parse(localStorage.getItem('indicators') || '[]');
-      const allActivities = JSON.parse(localStorage.getItem('activities') || '[]');
-      const allOrganizations = JSON.parse(localStorage.getItem('organizations') || '[]');
+      const userId = currentUser?.id || currentUser?.userId;
+      const isAdmin = currentUser?.roleId === 'admin';
 
-      // Filter by company_id
-      const filterByCompany = (arr) => {
-        if (!companyId) return arr;
-        return arr.filter(item => item.companyId === companyId);
-      };
+      // Load from Supabase (with localStorage fallback)
+      const [areasRaw, objectivesRaw, targetsRaw, indicatorsRaw, activitiesRaw, organizationsRaw] = await Promise.all([
+        getCompanyData('strategic_areas', userId, companyId, isAdmin),
+        getCompanyData('strategic_objectives', userId, companyId, isAdmin),
+        getCompanyData('targets', userId, companyId, isAdmin),
+        getCompanyData('indicators', userId, companyId, isAdmin),
+        getCompanyData('activities', userId, companyId, isAdmin),
+        getCompanyData('units', userId, companyId, isAdmin),
+      ]);
 
-      const areas = filterByCompany(allAreas);
-      const objectives = filterByCompany(allObjectives);
-      const targets = filterByCompany(allTargets);
-      const indicators = filterByCompany(allIndicators);
-      const activities = filterByCompany(allActivities);
-      const organizations = filterByCompany(allOrganizations);
+      // Map Supabase snake_case to camelCase
+      const mapData = (items) => items.map(item => ({
+        ...item,
+        companyId: item.company_id || item.companyId,
+        organizationId: item.organization_id || item.organizationId,
+        strategicAreaId: item.strategic_area_id || item.strategicAreaId,
+        objectiveId: item.objective_id || item.objectiveId,
+        targetId: item.target_id || item.targetId,
+        indicatorId: item.indicator_id || item.indicatorId,
+      }));
+
+      const areas = mapData(areasRaw);
+      const objectives = mapData(objectivesRaw);
+      const targets = mapData(targetsRaw);
+      const indicators = mapData(indicatorsRaw);
+      const activities = mapData(activitiesRaw);
+      const organizations = mapData(organizationsRaw);
 
       const allData = { areas, objectives, targets, indicators, activities, organizations };
       setRawData(allData);
@@ -102,29 +114,22 @@ const StrategicPlanning = ({ currentUser: propCurrentUser }) => {
     setIsEditModalOpen(true);
   };
 
-  const handleEditSave = (formData) => {
-    const typeMap = { 'Alan': 'strategicAreas', 'Amaç': 'strategicObjectives', 'Hedef': 'targets', 'Gösterge': 'indicators', 'Faaliyet': 'activities' };
-    const storageKey = typeMap[editingItem.type];
+  const handleEditSave = async (formData) => {
+    const typeMap = { 'Alan': 'strategic_areas', 'Amaç': 'strategic_objectives', 'Hedef': 'targets', 'Gösterge': 'indicators', 'Faaliyet': 'activities' };
+    const table = typeMap[editingItem.type];
     
-    if (!storageKey) return;
+    if (!table) return;
 
-    const companyId = currentUser?.companyId;
-    const allItems = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    const updatedList = allItems.map(i => {
-      if (i.id === editingItem.id) {
-        return { 
-          ...i, 
-          ...formData, 
-          companyId: companyId || i.companyId, // Preserve or set companyId
-          updatedAt: new Date().toISOString() 
-        };
-      }
-      return i;
-    });
+    const userId = currentUser?.id || currentUser?.userId;
     
-    localStorage.setItem(storageKey, JSON.stringify(updatedList));
+    const { error } = await updateCompanyData(table, editingItem.id, formData, userId);
+    
+    if (error) {
+      console.error("Update error:", error);
+      return;
+    }
+    
     showSuccessToast("Kayıt güncellendi");
-    // setIsEditModalOpen(false); // Handled by modal
     setEditingItem(null);
     setSelectedItem(null); 
     loadData();

@@ -8,6 +8,7 @@ import DetailPanel from '@/components/DetailPanel';
 import { cn } from '@/lib/utils';
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { CompanyBadge } from '@/components/CompanyBadge';
+import { getCompanyData, insertCompanyData, updateCompanyData, deleteCompanyData } from '@/lib/supabase';
 
 // Shared component for Management View
 const SpManagement = ({ currentUser: propCurrentUser }) => {
@@ -28,29 +29,40 @@ const SpManagement = ({ currentUser: propCurrentUser }) => {
 
   useEffect(() => { refreshData(); }, [currentUser?.companyId, currentUser?.roleId]);
 
-  const refreshData = () => {
+  const refreshData = async () => {
     try {
       const companyId = currentUser?.companyId;
-      const allAreas = JSON.parse(localStorage.getItem('strategicAreas') || '[]');
-      const allObjectives = JSON.parse(localStorage.getItem('strategicObjectives') || '[]');
-      const allTargets = JSON.parse(localStorage.getItem('targets') || '[]');
-      const allIndicators = JSON.parse(localStorage.getItem('indicators') || '[]');
-      const allActivities = JSON.parse(localStorage.getItem('activities') || '[]');
-      const allOrganizations = JSON.parse(localStorage.getItem('organizations') || '[]');
-      
-      // Filter by company_id
-      const filterByCompany = (arr) => {
-        if (!companyId) return arr;
-        return arr.filter(item => item.companyId === companyId);
-      };
-      
+      const userId = currentUser?.id || currentUser?.userId;
+      const isAdmin = currentUser?.roleId === 'admin';
+
+      // Load from Supabase (with localStorage fallback)
+      const [areas, objectives, targets, indicators, activities, organizations] = await Promise.all([
+        getCompanyData('strategic_areas', userId, companyId, isAdmin),
+        getCompanyData('strategic_objectives', userId, companyId, isAdmin),
+        getCompanyData('targets', userId, companyId, isAdmin),
+        getCompanyData('indicators', userId, companyId, isAdmin),
+        getCompanyData('activities', userId, companyId, isAdmin),
+        getCompanyData('units', userId, companyId, isAdmin),
+      ]);
+
+      // Map Supabase snake_case to camelCase
+      const mapData = (items) => items.map(item => ({
+        ...item,
+        companyId: item.company_id || item.companyId,
+        organizationId: item.organization_id || item.organizationId,
+        strategicAreaId: item.strategic_area_id || item.strategicAreaId,
+        objectiveId: item.objective_id || item.objectiveId,
+        targetId: item.target_id || item.targetId,
+        indicatorId: item.indicator_id || item.indicatorId,
+      }));
+
       setData({
-        areas: filterByCompany(allAreas),
-        objectives: filterByCompany(allObjectives),
-        targets: filterByCompany(allTargets),
-        indicators: filterByCompany(allIndicators),
-        activities: filterByCompany(allActivities),
-        organizations: filterByCompany(allOrganizations),
+        areas: mapData(areas),
+        objectives: mapData(objectives),
+        targets: mapData(targets),
+        indicators: mapData(indicators),
+        activities: mapData(activities),
+        organizations: mapData(organizations),
       });
     } catch (e) { console.error(e); }
   };
@@ -66,60 +78,54 @@ const SpManagement = ({ currentUser: propCurrentUser }) => {
     setDetailPanelOpen(false); // Close detail panel when editing starts
   };
 
-  const handleDelete = (item) => {
+  const handleDelete = async (item) => {
     if(!window.confirm("Bu kaydı silmek istediğinize emin misiniz? Alt kayıtlar da silinebilir.")) return;
 
-    const map = { areas:'strategicAreas', objectives:'strategicObjectives', targets:'targets', indicators:'indicators', activities:'activities' };
-    const listKey = map[activeTab];
-    const currentList = data[activeTab] || [];
-    const updatedList = currentList.filter(i => i.id !== item.id);
+    const tableMap = { areas:'strategic_areas', objectives:'strategic_objectives', targets:'targets', indicators:'indicators', activities:'activities' };
+    const table = tableMap[activeTab];
+    const userId = currentUser?.id || currentUser?.userId;
     
-    localStorage.setItem(listKey, JSON.stringify(updatedList));
+    const { error } = await deleteCompanyData(table, item.id, userId);
+    
+    if (error) {
+      showErrorToast("Silme işlemi başarısız");
+      return;
+    }
+    
     showSuccessToast("Kayıt silindi.");
     refreshData();
     setDetailPanelOpen(false);
   };
 
-  const handleSave = (formData) => {
+  const handleSave = async (formData) => {
     try {
-        const map = { areas:'strategicAreas', objectives:'strategicObjectives', targets:'targets', indicators:'indicators', activities:'activities' };
-        const key = map[activeTab];
-        const companyId = currentUser?.companyId; // Get company ID from current user
+        const tableMap = { areas:'strategic_areas', objectives:'strategic_objectives', targets:'targets', indicators:'indicators', activities:'activities' };
+        const table = tableMap[activeTab];
+        const companyId = currentUser?.companyId;
+        const userId = currentUser?.id || currentUser?.userId;
         
-        // Get ALL items from localStorage (not filtered)
-        const allItems = JSON.parse(localStorage.getItem(key) || '[]');
-        
-        let updatedAllItems;
         if (editingItem) {
-           // Update existing item in full list
-           updatedAllItems = allItems.map(i => {
-             if (i.id === editingItem.id) {
-               return { 
-                 ...i, 
-                 ...formData, 
-                 companyId: companyId || i.companyId, // Keep existing or set new
-                 updatedAt: new Date().toISOString() 
-               };
-             }
-             return i;
-           });
+           // Update existing item
+           const { error } = await updateCompanyData(table, editingItem.id, formData, userId);
+           if (error) {
+             showErrorToast("Güncelleme başarısız");
+             return;
+           }
         } else {
-           // Create new item - add companyId
+           // Create new item
            const newItem = {
              ...formData,
              id: `${activeTab.slice(0,3)}-${Date.now()}`,
-             companyId: companyId, // Add company ID to new items
-             createdAt: new Date().toISOString()
            };
-           updatedAllItems = [...allItems, newItem];
+           const { error } = await insertCompanyData(table, newItem, userId, companyId);
+           if (error) {
+             showErrorToast("Kayıt oluşturulamadı");
+             return;
+           }
         }
-
-        // Save to localStorage
-        localStorage.setItem(key, JSON.stringify(updatedAllItems));
         
-        // Refresh data (will filter by company)
+        // Refresh data
         refreshData();
-        // setIsModalOpen(false); // Handled by EditItemModal onClose
         showSuccessToast(editingItem ? "Güncelleme başarılı" : "Kayıt oluşturuldu");
         
         // Broadcast event for other components
