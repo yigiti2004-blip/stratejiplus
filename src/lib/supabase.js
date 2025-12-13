@@ -64,14 +64,53 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
 
   await setUserContext(userId);
 
+  // Map camelCase to snake_case for Supabase
+  const snakeCaseData = {
+    ...data,
+    company_id: companyId,
+    // Map common camelCase fields to snake_case
+    organization_id: data.organizationId || data.organization_id,
+    strategic_area_id: data.strategicAreaId || data.strategic_area_id,
+    objective_id: data.objectiveId || data.objective_id,
+    target_id: data.targetId || data.target_id,
+    indicator_id: data.indicatorId || data.indicator_id,
+    budget_chapter_id: data.budgetChapterId || data.budget_chapter_id,
+    responsible_unit: data.responsibleUnit || data.responsible_unit,
+    planned_budget: data.plannedBudget || data.planned_budget,
+    actual_budget: data.actualBudget || data.actual_budget,
+    target_value: data.targetValue || data.target_value,
+    actual_value: data.actualValue || data.actual_value,
+    start_date: data.startDate || data.start_date,
+    end_date: data.endDate || data.end_date,
+  };
+
+  // Remove camelCase duplicates
+  delete snakeCaseData.organizationId;
+  delete snakeCaseData.strategicAreaId;
+  delete snakeCaseData.objectiveId;
+  delete snakeCaseData.targetId;
+  delete snakeCaseData.indicatorId;
+  delete snakeCaseData.budgetChapterId;
+  delete snakeCaseData.responsibleUnit;
+  delete snakeCaseData.plannedBudget;
+  delete snakeCaseData.actualBudget;
+  delete snakeCaseData.targetValue;
+  delete snakeCaseData.actualValue;
+  delete snakeCaseData.startDate;
+  delete snakeCaseData.endDate;
+  delete snakeCaseData.companyId;
+
+  console.log('Inserting into', table, ':', snakeCaseData);
+
   const { data: result, error } = await supabase
     .from(table)
-    .insert([{ ...data, company_id: companyId }])
+    .insert([snakeCaseData])
     .select()
     .single();
 
   if (error) {
     console.error(`Error inserting into ${table}:`, error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     return { data: null, error };
   }
 
@@ -92,15 +131,52 @@ export const updateCompanyData = async (table, id, updates, userId) => {
 
   await setUserContext(userId);
 
+  // Map camelCase to snake_case for Supabase
+  const snakeCaseUpdates = {
+    ...updates,
+    updated_at: new Date().toISOString(),
+    // Map common camelCase fields to snake_case
+    organization_id: updates.organizationId || updates.organization_id,
+    strategic_area_id: updates.strategicAreaId || updates.strategic_area_id,
+    objective_id: updates.objectiveId || updates.objective_id,
+    target_id: updates.targetId || updates.target_id,
+    indicator_id: updates.indicatorId || updates.indicator_id,
+    responsible_unit: updates.responsibleUnit || updates.responsible_unit,
+    planned_budget: updates.plannedBudget || updates.planned_budget,
+    actual_budget: updates.actualBudget || updates.actual_budget,
+    target_value: updates.targetValue || updates.target_value,
+    actual_value: updates.actualValue || updates.actual_value,
+    start_date: updates.startDate || updates.start_date,
+    end_date: updates.endDate || updates.end_date,
+  };
+
+  // Remove camelCase duplicates
+  delete snakeCaseUpdates.organizationId;
+  delete snakeCaseUpdates.strategicAreaId;
+  delete snakeCaseUpdates.objectiveId;
+  delete snakeCaseUpdates.targetId;
+  delete snakeCaseUpdates.indicatorId;
+  delete snakeCaseUpdates.responsibleUnit;
+  delete snakeCaseUpdates.plannedBudget;
+  delete snakeCaseUpdates.actualBudget;
+  delete snakeCaseUpdates.targetValue;
+  delete snakeCaseUpdates.actualValue;
+  delete snakeCaseUpdates.startDate;
+  delete snakeCaseUpdates.endDate;
+  delete snakeCaseUpdates.companyId;
+
+  console.log('Updating', table, id, ':', snakeCaseUpdates);
+
   const { data, error } = await supabase
     .from(table)
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(snakeCaseUpdates)
     .eq('id', id)
     .select()
     .single();
 
   if (error) {
     console.error(`Error updating ${table}:`, error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     return { data: null, error };
   }
 

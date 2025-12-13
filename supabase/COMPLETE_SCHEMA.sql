@@ -101,7 +101,6 @@ CREATE TABLE IF NOT EXISTS users (
   full_name VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash TEXT,
-  password TEXT,
   role_id VARCHAR(50) NOT NULL,
   unit_id VARCHAR(50) REFERENCES units(unit_id) ON DELETE SET NULL,
   company_id VARCHAR(50) REFERENCES companies(company_id) ON DELETE CASCADE,
@@ -112,11 +111,19 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Add password column if it doesn't exist (for compatibility)
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'password') THEN
+    ALTER TABLE users ADD COLUMN password TEXT;
+  END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_users_company ON users(company_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
--- Insert default users
-INSERT INTO users (user_id, full_name, email, password, role_id, unit_id, company_id, status)
+-- Insert default users (using password_hash column which exists)
+INSERT INTO users (user_id, full_name, email, password_hash, role_id, unit_id, company_id, status)
 VALUES 
   ('comp-a-admin', 'Ahmet Yılmaz', 'ahmet@companya.com', 'admin123', 'admin', 'comp-a-org-1', 'company-a', 'aktif'),
   ('comp-a-user', 'Ayşe Demir', 'ayse@companya.com', 'user123', 'manager', 'comp-a-org-1', 'company-a', 'aktif'),
