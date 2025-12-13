@@ -117,11 +117,14 @@ const SpManagement = ({ currentUser: propCurrentUser }) => {
              ...formData,
              id: `${activeTab.slice(0,3)}-${Date.now()}`,
            };
-           const { error } = await insertCompanyData(table, newItem, userId, companyId);
+           const { data: insertedData, error } = await insertCompanyData(table, newItem, userId, companyId);
            if (error) {
-             showErrorToast("Kayıt oluşturulamadı");
+             console.error('Insert error details:', error);
+             const errorMessage = error.message || error.details || 'Kayıt oluşturulamadı';
+             showErrorToast(`Kayıt oluşturulamadı: ${errorMessage}`);
              return;
            }
+           console.log('Successfully inserted:', insertedData);
         }
         
         // Refresh data

@@ -69,22 +69,25 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
     ...data,
     company_id: companyId,
     // Map common camelCase fields to snake_case
-    organization_id: data.organizationId || data.organization_id,
-    strategic_area_id: data.strategicAreaId || data.strategic_area_id,
-    objective_id: data.objectiveId || data.objective_id,
-    target_id: data.targetId || data.target_id,
-    indicator_id: data.indicatorId || data.indicator_id,
-    budget_chapter_id: data.budgetChapterId || data.budget_chapter_id,
-    responsible_unit: data.responsibleUnit || data.responsible_unit,
-    planned_budget: data.plannedBudget || data.planned_budget,
-    actual_budget: data.actualBudget || data.actual_budget,
-    target_value: data.targetValue || data.target_value,
-    actual_value: data.actualValue || data.actual_value,
-    start_date: data.startDate || data.start_date,
-    end_date: data.endDate || data.end_date,
+    organization_id: data.organizationId || data.organization_id || null,
+    strategic_area_id: data.strategicAreaId || data.strategic_area_id || null,
+    objective_id: data.objectiveId || data.objective_id || null,
+    target_id: data.targetId || data.target_id || null,
+    indicator_id: data.indicatorId || data.indicator_id || null,
+    budget_chapter_id: data.budgetChapterId || data.budget_chapter_id || null,
+    responsible_unit: data.responsibleUnit || data.responsible_unit || null,
+    planned_budget: data.plannedBudget !== undefined ? data.plannedBudget : (data.planned_budget !== undefined ? data.planned_budget : null),
+    actual_budget: data.actualBudget !== undefined ? data.actualBudget : (data.actual_budget !== undefined ? data.actual_budget : null),
+    target_value: data.targetValue !== undefined ? data.targetValue : (data.target_value !== undefined ? data.target_value : null),
+    actual_value: data.actualValue !== undefined ? data.actualValue : (data.actual_value !== undefined ? data.actual_value : null),
+    start_date: data.startDate || data.start_date || null,
+    end_date: data.endDate || data.end_date || null,
+    // Ensure required fields for strategic_areas
+    code: data.code || data.id || `SA-${Date.now()}`,
+    name: data.name || '',
   };
 
-  // Remove camelCase duplicates
+  // Remove camelCase duplicates and empty strings
   delete snakeCaseData.organizationId;
   delete snakeCaseData.strategicAreaId;
   delete snakeCaseData.objectiveId;
@@ -99,8 +102,22 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
   delete snakeCaseData.startDate;
   delete snakeCaseData.endDate;
   delete snakeCaseData.companyId;
+  
+  // Remove empty strings (Supabase doesn't like them for some fields)
+  Object.keys(snakeCaseData).forEach(key => {
+    if (snakeCaseData[key] === '') {
+      snakeCaseData[key] = null;
+    }
+  });
 
   console.log('Inserting into', table, ':', snakeCaseData);
+
+  // Remove undefined/null values that might cause issues
+  Object.keys(snakeCaseData).forEach(key => {
+    if (snakeCaseData[key] === undefined || snakeCaseData[key] === null || snakeCaseData[key] === '') {
+      delete snakeCaseData[key];
+    }
+  });
 
   const { data: result, error } = await supabase
     .from(table)
@@ -111,9 +128,11 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
   if (error) {
     console.error(`Error inserting into ${table}:`, error);
     console.error('Error details:', JSON.stringify(error, null, 2));
+    console.error('Data attempted:', JSON.stringify(snakeCaseData, null, 2));
     return { data: null, error };
   }
 
+  console.log('Successfully inserted:', result);
   return { data: result, error: null };
 }
 
