@@ -39,14 +39,25 @@ export const getCompanyData = async (table, userId, companyId, isAdmin = false) 
   await setUserContext(userId);
 
   // Query with RLS automatically applied
-  const { data, error } = await supabase
+  let query = supabase
     .from(table)
-    .select('*')
-    .order('created_at', { ascending: false });
+    .select('*');
+
+  // If not admin, manually filter by company_id (RLS might allow all)
+  if (!isAdmin && companyId) {
+    query = query.eq('company_id', companyId);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
 
   if (error) {
     console.error(`Error fetching ${table}:`, error);
     return [];
+  }
+
+  // Double-check filtering (in case RLS allows all)
+  if (!isAdmin && companyId && data) {
+    return data.filter(item => (item.company_id || item.companyId) === companyId);
   }
 
   return data || [];
