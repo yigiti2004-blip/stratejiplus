@@ -15,17 +15,15 @@ export const supabase = supabaseUrl && supabaseAnonKey
 
 // Helper function to set current user context for RLS
 export const setUserContext = async (userId) => {
-  if (!supabase) return;
+  if (!supabase || !userId) return;
   
   try {
     // Set the user context for RLS policies
-    await supabase.rpc('set_user_context', { user_id: userId });
+    await supabase.rpc('set_user_context', { user_id: String(userId) });
   } catch (error) {
-    console.warn('Could not set user context:', error);
-    // Fallback: Use session variable
-    await supabase.rpc('exec_sql', {
-      sql: `SET LOCAL app.current_user_id = '${userId}'`
-    });
+    // Silently fail - RLS policies will use default behavior
+    // This is expected if the function doesn't exist yet
+    console.debug('User context not set (function may not exist):', error?.message);
   }
 }
 
