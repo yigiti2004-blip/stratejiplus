@@ -236,6 +236,7 @@ export default function StrategicSnapshot() {
             (items || []).map((item) => ({
               ...item,
               companyId: item.company_id || item.companyId,
+              responsibleUnit: item.responsible_unit || item.responsibleUnit || '-',
             }));
 
           const mapObjectives = (items) =>
@@ -243,6 +244,7 @@ export default function StrategicSnapshot() {
               ...item,
               companyId: item.company_id || item.companyId,
               strategicAreaId: item.strategic_area_id || item.strategicAreaId,
+              responsibleUnit: item.responsible_unit || item.responsibleUnit || '-',
             }));
 
           const mapTargets = (items) =>
@@ -251,6 +253,7 @@ export default function StrategicSnapshot() {
               companyId: item.company_id || item.companyId,
               objectiveId: item.objective_id || item.objectiveId,
               completion: Number(item.completion_percentage ?? item.completion ?? 0),
+              responsibleUnit: item.responsible_unit || item.responsibleUnit || '-',
             }));
 
           const mapActivities = (items) =>
