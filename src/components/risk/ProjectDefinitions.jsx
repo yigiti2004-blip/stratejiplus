@@ -92,8 +92,8 @@ const ProjectDefinitions = ({ projects, onAdd, onUpdate, onDelete }) => {
               </TableRow>
             ) : (
               projects.map(project => (
-                <TableRow key={project.id}>
-                  <TableCell className="font-medium">{project.name}</TableCell>
+              <TableRow key={project.id}>
+                  <TableCell className="font-medium text-gray-900">{project.name}</TableCell>
                   <TableCell>{project.manager || '-'}</TableCell>
                   <TableCell className="text-sm text-gray-600">
                     <div className="flex items-center gap-1">

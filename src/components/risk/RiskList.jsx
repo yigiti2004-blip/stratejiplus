@@ -106,7 +106,7 @@ const RiskList = ({ risks, onView, onEdit, onDelete }) => {
                       const level = getRiskLevel(risk.score);
                       return (
                          <TableRow key={risk.id} className="hover:bg-gray-50 group">
-                            <TableCell className="pl-6 font-medium">{risk.name}</TableCell>
+                            <TableCell className="pl-6 font-medium text-gray-900">{risk.name}</TableCell>
                             <TableCell>
                                <Badge className={typeDef?.color}>{typeDef?.label}</Badge>
                             </TableCell>
