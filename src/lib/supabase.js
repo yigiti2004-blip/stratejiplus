@@ -109,8 +109,9 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
     actual_budget: data.actualBudget !== undefined ? data.actualBudget : (data.actual_budget !== undefined ? data.actual_budget : null),
     target_value: data.targetValue !== undefined ? data.targetValue : (data.target_value !== undefined ? data.target_value : null),
     actual_value: data.actualValue !== undefined ? data.actualValue : (data.actual_value !== undefined ? data.actual_value : null),
-    start_date: data.startDate || data.start_date || null,
-    end_date: data.endDate || data.end_date || null,
+    // activities/targets use plannedStartDate/plannedEndDate in forms; map them to start_date/end_date
+    start_date: data.startDate || data.plannedStartDate || data.start_date || null,
+    end_date: data.endDate || data.plannedEndDate || data.end_date || null,
     // Ensure required fields
     code: data.code || data.id || `SA-${Date.now()}`,
     name: data.name || '',
@@ -201,10 +202,12 @@ export const updateCompanyData = async (table, id, updates, userId) => {
     target_id: updates.targetId || updates.target_id,
     indicator_id: updates.indicatorId || updates.indicator_id,
     responsible_unit: updates.responsibleUnit || updates.responsible_unit,
-    planned_budget: updates.plannedBudget || updates.planned_budget,
-    actual_budget: updates.actualBudget || updates.actual_budget,
+    planned_budget: updates.plannedBudget ?? updates.planned_budget,
+    actual_budget: updates.actualBudget ?? updates.actual_budget,
     target_value: updates.targetValue || updates.target_value,
     actual_value: updates.actualValue || updates.actual_value,
+    start_date: updates.startDate || updates.plannedStartDate || updates.start_date,
+    end_date: updates.endDate || updates.plannedEndDate || updates.end_date,
     start_date: updates.startDate || updates.start_date,
     end_date: updates.endDate || updates.end_date,
   };
