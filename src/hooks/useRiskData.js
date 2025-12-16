@@ -11,17 +11,29 @@ export const useRiskData = () => {
   // Load data from Supabase - filtered by company
   useEffect(() => {
     const loadData = async () => {
-      if (!currentUser) return;
+      if (!currentUser) {
+        console.log('No currentUser, skipping risk data load');
+        return;
+      }
       
       const companyId = currentUser?.companyId;
       const userId = currentUser?.id || currentUser?.userId;
       const isAdmin = currentUser?.roleId === 'admin';
 
+      if (!companyId) {
+        console.warn('No companyId available for loading risks');
+        return;
+      }
+
+      console.log('Loading risks for company:', companyId, 'user:', userId);
       try {
         const [risksData, projectsData] = await Promise.all([
           getCompanyData('risks', userId, companyId, isAdmin),
           getCompanyData('risk_projects', userId, companyId, isAdmin),
         ]);
+
+        console.log('Raw risks data from Supabase:', risksData);
+        console.log('Raw projects data from Supabase:', projectsData);
 
         // Map snake_case to camelCase
         const mapRisk = (item) => ({
@@ -38,10 +50,17 @@ export const useRiskData = () => {
           companyId: item.company_id || item.companyId,
         });
 
-        setRisks(risksData.map(mapRisk));
-        setProjects(projectsData.map(mapProject));
+        const mappedRisks = risksData.map(mapRisk);
+        const mappedProjects = projectsData.map(mapProject);
+        
+        console.log('Mapped risks for UI:', mappedRisks);
+        console.log('Mapped projects for UI:', mappedProjects);
+        
+        setRisks(mappedRisks);
+        setProjects(mappedProjects);
       } catch (error) {
         console.error('Error loading risk data:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
       }
     };
 
