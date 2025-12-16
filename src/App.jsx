@@ -143,6 +143,40 @@ const performStandardizationAndMigration = () => {
   }
 };
 
+// One-time cleanup for legacy localStorage data when using Supabase backend
+const clearLegacyLocalStorageForSupabase = () => {
+  try {
+    const hasSupabase =
+      !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
+    if (!hasSupabase) return;
+
+    const legacyKeys = [
+      'strategicAreas',
+      'strategicObjectives',
+      'targets',
+      'indicators',
+      'activities',
+      'units',
+      'organizations',
+      'monitoringHistory',
+      'budgetChapters',
+      'expenses',
+      'risks',
+      'revisions',
+    ];
+
+    legacyKeys.forEach((key) => {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        // ignore per-key errors
+      }
+    });
+  } catch (e) {
+    console.warn('Failed to clear legacy localStorage data:', e);
+  }
+};
+
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -171,23 +205,20 @@ function App() {
   useEffect(() => {
     const initApp = async () => {
       try {
-        // Always initialize data first
-        initializeData();
-        // Then perform migration/standardization
-        performStandardizationAndMigration();
-        // Ensure data is still initialized after migration
-        initializeData();
+        const hasSupabase =
+          !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+        if (hasSupabase) {
+          // Using Supabase: clear old localStorage seed so UI doesn't flash legacy data
+          clearLegacyLocalStorageForSupabase();
+        } else {
+          // Local-only mode (no Supabase): seed demo data + migration as before
+          initializeData();
+          performStandardizationAndMigration();
+          initializeData();
+        }
       } catch (error) {
         console.error("Initialization error:", error);
-        // Even if there's an error, try to ensure admin user exists
-        try {
-          const usersStr = localStorage.getItem('users');
-          if (!usersStr || !JSON.parse(usersStr).some(u => u.email === 'admin@stratejiplus.com')) {
-            initializeData();
-          }
-        } catch (e) {
-          console.error("Failed to ensure admin user:", e);
-        }
       } finally {
         setIsInitializing(false);
       }
