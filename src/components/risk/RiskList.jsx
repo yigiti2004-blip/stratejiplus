@@ -45,9 +45,9 @@ const RiskList = ({ risks, onView, onEdit, onDelete }) => {
           </div>
           
           <div className="w-40">
-             <label className="text-xs font-semibold text-gray-500 mb-1 block">Risk Türü</label>
+             <label className="text-xs font-semibold text-gray-700 mb-1 block">Risk Türü</label>
              <select 
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="flex h-10 w-full rounded-md border border-gray-300 bg-white text-gray-900 px-3 py-2 text-sm"
                 value={filters.type}
                 onChange={e => setFilters({...filters, type: e.target.value})}
              >
@@ -57,9 +57,9 @@ const RiskList = ({ risks, onView, onEdit, onDelete }) => {
           </div>
 
           <div className="w-40">
-             <label className="text-xs font-semibold text-gray-500 mb-1 block">Durum</label>
+             <label className="text-xs font-semibold text-gray-700 mb-1 block">Durum</label>
              <select 
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="flex h-10 w-full rounded-md border border-gray-300 bg-white text-gray-900 px-3 py-2 text-sm"
                 value={filters.status}
                 onChange={e => setFilters({...filters, status: e.target.value})}
              >
@@ -69,9 +69,9 @@ const RiskList = ({ risks, onView, onEdit, onDelete }) => {
           </div>
 
           <div className="w-40">
-             <label className="text-xs font-semibold text-gray-500 mb-1 block">Risk Seviyesi</label>
+             <label className="text-xs font-semibold text-gray-700 mb-1 block">Risk Seviyesi</label>
              <select 
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="flex h-10 w-full rounded-md border border-gray-300 bg-white text-gray-900 px-3 py-2 text-sm"
                 value={filters.level}
                 onChange={e => setFilters({...filters, level: e.target.value})}
              >

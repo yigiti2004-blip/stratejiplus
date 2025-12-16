@@ -66,8 +66,8 @@ const ProjectDefinitions = ({ projects, onAdd, onUpdate, onDelete }) => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Proje Tanımları</h2>
-          <p className="text-sm text-gray-500">Risk yönetimi ile ilişkilendirilecek projeleri buradan yönetebilirsiniz.</p>
+          <h2 className="text-xl font-bold text-white">Proje Tanımları</h2>
+          <p className="text-sm text-gray-300">Risk yönetimi ile ilişkilendirilecek projeleri buradan yönetebilirsiniz.</p>
         </div>
         <Button onClick={() => openModal()} className="bg-blue-600 text-white">
           <Plus className="w-4 h-4 mr-2" /> Yeni Proje
@@ -143,7 +143,7 @@ const ProjectDefinitions = ({ projects, onAdd, onUpdate, onDelete }) => {
             <div className="grid gap-2">
               <Label>Durum</Label>
               <select 
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                className="flex h-10 w-full rounded-md border border-gray-300 bg-white text-gray-900 px-3 py-2 text-sm"
                 value={formData.status} 
                 onChange={e => setFormData({...formData, status: e.target.value})}
               >

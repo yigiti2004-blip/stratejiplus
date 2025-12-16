@@ -128,11 +128,11 @@ const RiskModule = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <ShieldAlert className="text-red-600 w-8 h-8"/> 
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <ShieldAlert className="text-red-400 w-8 h-8"/> 
             Kurumsal Risk Yönetimi
           </h1>
-          <p className="text-sm text-gray-600 mt-1">Stratejik, süreç ve proje risklerini bütünleşik olarak yönetin.</p>
+          <p className="text-sm text-gray-300 mt-1">Stratejik, süreç ve proje risklerini bütünleşik olarak yönetin.</p>
         </div>
         <Button onClick={() => handleOpenForm(null)} className="bg-red-600 hover:bg-red-700 text-white shadow-sm">
           <Plus className="w-4 h-4 mr-2"/> Yeni Risk Tanımla
