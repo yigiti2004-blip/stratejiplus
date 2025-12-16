@@ -26,24 +26,7 @@
     --radius: 0.5rem;
   }
 
-  /* Fix for select elements - ensure text is always visible on light backgrounds */
-  select:not([class*="bg-gray-"]):not([class*="bg-"]):not([class*="text-"]) {
-    color: rgb(17 24 39) !important; /* text-gray-900 */
-    background-color: white !important;
-  }
-
-  select option {
-    color: rgb(17 24 39) !important;
-    background-color: white !important;
-  }
-
-  /* Fix for select elements in light containers */
-  .bg-white select:not([class*="text-"]),
-  .bg-gray-50 select:not([class*="text-"]),
-  .bg-gray-100 select:not([class*="text-"]) {
-    color: rgb(17 24 39) !important;
-    background-color: white !important;
-  }
+  /* (Removed global white select background to allow themed selects) */
  
   .dark {
     --background: 222.2 84% 4.9%;
@@ -592,8 +575,10 @@
 }
 
 .modal-content select option {
-  background-color: #020617;
-  color: #e5e7eb;
+  background-color: #020617 !important;
+  color: #e5e7eb !important;
+  font-family: inherit;
+  font-size: 0.875rem;
 }
 
 .modal-content .btn-primary {
