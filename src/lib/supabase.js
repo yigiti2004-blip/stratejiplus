@@ -104,6 +104,10 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
     target_id: data.targetId || data.target_id || null,
     indicator_id: data.indicatorId || data.indicator_id || null,
     budget_chapter_id: data.budgetChapterId || data.budget_chapter_id || null,
+    // Risk-specific mappings
+    risk_type: data.riskType || data.risk_type || null,
+    related_record_type: data.relatedRecordType || data.related_record_type || null,
+    related_record_id: data.relatedRecordId || data.related_record_id || null,
     responsible_unit: data.responsibleUnit || data.responsible_unit || null,
     planned_budget: data.plannedBudget !== undefined ? data.plannedBudget : (data.planned_budget !== undefined ? data.planned_budget : null),
     actual_budget: data.actualBudget !== undefined ? data.actualBudget : (data.actual_budget !== undefined ? data.actual_budget : null),
@@ -124,6 +128,9 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
   delete snakeCaseData.targetId;
   delete snakeCaseData.indicatorId;
   delete snakeCaseData.budgetChapterId;
+  delete snakeCaseData.riskType;
+  delete snakeCaseData.relatedRecordType;
+  delete snakeCaseData.relatedRecordId;
   delete snakeCaseData.responsibleUnit;
   delete snakeCaseData.plannedBudget;
   delete snakeCaseData.actualBudget;
