@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useBirimler } from '@/hooks/useBirimler';
 import { useKullanicilar } from '@/hooks/useKullanicilar';
-import { useAlanlar } from '@/hooks/useAlanlar';
-import { useAmaclar } from '@/hooks/useAmaclar';
-import { useHedefler } from '@/hooks/useHedefler';
 import { CodeGenerator } from '@/lib/code-generator';
 
 export const SpItemForm = ({
@@ -28,7 +25,6 @@ export const SpItemForm = ({
   // Load Hooks
   const { birimler } = useBirimler();
   const { kullanicilar } = useKullanicilar();
-  const { alanlar } = useAlanlar();
   
   // State for form
   const isCreateMode = !editingItem || !editingItem.id;
@@ -89,10 +85,6 @@ export const SpItemForm = ({
 
   const [formData, setFormData] = useState(getInitialFormData());
   const [errors, setErrors] = useState({});
-
-  // Cascading Hooks
-  const { amaclar } = useAmaclar(formData.strategicAreaId);
-  const { hedefler } = useHedefler(formData.objectiveId);
 
   // Re-init on edit item change
   useEffect(() => {
@@ -230,8 +222,8 @@ export const SpItemForm = ({
               <label className="form-label">Bağlı Olduğu Alan <span className="required">*</span></label>
               <select name="strategicAreaId" value={formData.strategicAreaId} onChange={handleAlanChange} className={`form-input ${errors.strategicAreaId ? 'form-input-error' : ''}`}>
                   <option value="">-- Alan Seçin --</option>
-                  {alanlar.map(a => (
-                      <option key={a.alan_kodu} value={a.alan_kodu}>{a.display_code} - {a.alan_adi}</option>
+                  {(allData?.areas || []).map(a => (
+                      <option key={a.id} value={a.id}>{a.code ? `${a.code} - ${a.name}` : a.name}</option>
                   ))}
               </select>
               {errors.strategicAreaId && <span className="form-error">{errors.strategicAreaId}</span>}
@@ -244,9 +236,11 @@ export const SpItemForm = ({
               <label className="form-label">Bağlı Olduğu Amaç <span className="required">*</span></label>
               <select name="objectiveId" value={formData.objectiveId} onChange={handleAmacChange} className={`form-input ${errors.objectiveId ? 'form-input-error' : ''}`} disabled={!formData.strategicAreaId}>
                   <option value="">-- Amaç Seçin --</option>
-                  {amaclar.map(a => (
-                      <option key={a.amac_kodu} value={a.amac_kodu}>{a.display_code} - {a.amac_adi}</option>
-                  ))}
+                  {(allData?.objectives || [])
+                    .filter(a => a.strategicAreaId === formData.strategicAreaId)
+                    .map(a => (
+                      <option key={a.id} value={a.id}>{a.code ? `${a.code} - ${a.name}` : a.name}</option>
+                    ))}
               </select>
               {errors.objectiveId && <span className="form-error">{errors.objectiveId}</span>}
           </div>
@@ -258,9 +252,11 @@ export const SpItemForm = ({
               <label className="form-label">Bağlı Olduğu Hedef <span className="required">*</span></label>
               <select name="targetId" value={formData.targetId} onChange={handleChange} className={`form-input ${errors.targetId ? 'form-input-error' : ''}`} disabled={!formData.objectiveId}>
                   <option value="">-- Hedef Seçin --</option>
-                  {hedefler.map(h => (
-                      <option key={h.hedef_kodu} value={h.hedef_kodu}>{h.display_code} - {h.hedef_adi}</option>
-                  ))}
+                  {(allData?.targets || [])
+                    .filter(h => h.objectiveId === formData.objectiveId)
+                    .map(h => (
+                      <option key={h.id} value={h.id}>{h.code ? `${h.code} - ${h.name}` : h.name}</option>
+                    ))}
               </select>
               {errors.targetId && <span className="form-error">{errors.targetId}</span>}
           </div>
