@@ -1,28 +1,53 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { useAuthContext } from './useAuthContext';
+import { getCompanyData } from '@/lib/supabase';
 
 export const useAnnualWorkPlan = () => {
+  const { currentUser } = useAuthContext();
   const [yearSpecificWork, setYearSpecificWork] = useState([]);
   const [spActivities, setSpActivities] = useState([]);
 
-  const loadData = useCallback(() => {
+  const loadData = useCallback(async () => {
     try {
-      // Load Year Specific Work
+      // Load Year Specific Work (still local-only)
       const storedSpecific = localStorage.getItem('yearSpecificPlannedWork');
       if (storedSpecific) {
         setYearSpecificWork(JSON.parse(storedSpecific));
+      } else {
+        setYearSpecificWork([]);
       }
 
-      // Load SP Activities
-      const storedSp = localStorage.getItem('activities');
-      if (storedSp) {
-        setSpActivities(JSON.parse(storedSp));
+      // Load Strategic Plan activities from Supabase when possible
+      const companyId = currentUser?.companyId;
+      const userId = currentUser?.id || currentUser?.userId;
+      const isAdmin = currentUser?.roleId === 'admin';
+
+      if (companyId && userId) {
+        const activitiesRaw = await getCompanyData('activities', userId, companyId, isAdmin);
+        const mapped = (activitiesRaw || []).map((a) => ({
+          ...a,
+          // Normalize field names for annual plan
+          plannedStartDate: a.start_date || a.plannedStartDate,
+          plannedEndDate: a.end_date || a.plannedEndDate,
+          responsibleUnit: a.responsible_unit || a.responsibleUnit,
+        }));
+        setSpActivities(mapped);
+      } else {
+        // Fallback: try legacy localStorage (for non-Supabase mode)
+        const storedSp = localStorage.getItem('activities');
+        if (storedSp) {
+          setSpActivities(JSON.parse(storedSp));
+        } else {
+          setSpActivities([]);
+        }
       }
     } catch (error) {
-      console.error("Failed to load annual work plan data", error);
+      console.error('Failed to load annual work plan data', error);
+      setSpActivities([]);
     }
-  }, []);
+  }, [currentUser?.companyId, currentUser?.id, currentUser?.userId, currentUser?.roleId]);
 
   useEffect(() => {
     loadData();
