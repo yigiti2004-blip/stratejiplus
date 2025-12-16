@@ -64,11 +64,13 @@ const GanttChartView = ({ year, setYear, onItemClick }) => {
 
           {/* Time Controls */}
           <div className="flex items-center gap-3 ml-auto">
-             <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 p-1 h-9">
+             <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 p-1 h-9 text-gray-900">
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setYear(year - 1)}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <div className="px-2 font-bold text-sm min-w-[50px] text-center">{year}</div>
+                <div className="px-2 font-bold text-sm min-w-[50px] text-center text-gray-900">
+                  {year}
+                </div>
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setYear(year + 1)}>
                   <ChevronRight className="w-4 h-4" />
                 </Button>

@@ -120,7 +120,7 @@ const AnnualBusinessPlan = ({ currentUser }) => {
         </div>
         
         <div className="flex items-center gap-3">
-           <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 p-1">
+           <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 p-1 text-gray-900">
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -129,7 +129,9 @@ const AnnualBusinessPlan = ({ currentUser }) => {
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <div className="px-3 font-bold text-lg min-w-[80px] text-center">{selectedYear}</div>
+              <div className="px-3 font-bold text-lg min-w-[80px] text-center text-gray-900">
+                {selectedYear}
+              </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
