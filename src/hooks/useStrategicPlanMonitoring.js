@@ -75,6 +75,17 @@ export const useStrategicPlanMonitoring = () => {
               ...item,
               companyId: item.company_id || item.companyId,
               targetId: item.target_id || item.targetId,
+              // normalize fields used in Activity-based view
+              responsibleUnit: item.responsible_unit || item.responsibleUnit || '',
+              startDate: item.start_date || item.startDate || null,
+              endDate: item.end_date || item.endDate || null,
+              budget:
+                item.planned_budget ??
+                item.actual_budget ??
+                item.plannedBudget ??
+                item.actualBudget ??
+                item.budget ??
+                null,
             }));
 
           areas = mapAreas(areasRaw);
