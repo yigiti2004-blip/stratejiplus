@@ -53,13 +53,15 @@ const StrategicPlanMonitoringModule = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* Module Header */}
-      <div className="flex items-center gap-3 border-b border-gray-200 pb-6">
-        <div className="p-3 bg-blue-100 rounded-lg">
-          <BarChart3 className="w-6 h-6 text-blue-700" />
+      <div className="flex items-center gap-3 pb-6 border-b border-white/10">
+        <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/30">
+          <BarChart3 className="w-6 h-6 text-blue-300" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Stratejik Plan İzleme</h1>
-          <p className="text-sm text-gray-500">Stratejik plan hedeflerinin ve faaliyetlerinin merkezi izleme paneli.</p>
+          <h1 className="text-2xl font-bold text-white">Stratejik Plan İzleme</h1>
+          <p className="text-sm text-gray-300">
+            Stratejik plan hedeflerinin ve faaliyetlerinin merkezi izleme paneli.
+          </p>
         </div>
       </div>
 
