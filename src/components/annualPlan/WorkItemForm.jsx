@@ -173,8 +173,17 @@ const WorkItemForm = ({ onClose, onSave, onDelete, initialData, selectedYear }) 
                )}
             </div>
             <div className="flex gap-3">
-              <Button type="button" variant="outline" onClick={onClose}>İptal</Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Kaydet</Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+              >
+                İptal
+              </Button>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+                Kaydet
+              </Button>
             </div>
           </div>
         </form>
