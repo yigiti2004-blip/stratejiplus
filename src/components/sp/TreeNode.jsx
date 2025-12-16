@@ -25,7 +25,11 @@ export const TreeNode = ({
   return (
     <div className="tree-node relative">
       <div
-        className={cn("tree-row group", isSelected && "selected")}
+        className={cn(
+          "tree-row group flex items-center gap-3 border-b border-gray-100 px-4 py-2 text-sm bg-white text-gray-900",
+          "hover:bg-blue-50/70 transition-colors",
+          isSelected && "bg-blue-50/90"
+        )}
         style={{ paddingLeft: `${paddingLeft + 8}px` }}
         onClick={(e) => {
           e.stopPropagation();
@@ -43,24 +47,35 @@ export const TreeNode = ({
           {hasChildren && <ChevronRight className="w-4 h-4" />}
         </button>
 
-        <span className="item-code">{item.code}</span>
-        <span className="item-name">{item.name}</span>
+        <span className="item-code font-mono font-semibold text-blue-600 min-w-[72px]">
+          {item.code}
+        </span>
+        <span className="item-name font-medium text-gray-900 truncate">
+          {item.name}
+        </span>
         
         {item.status && (
           <span className={cn(
-            "item-status hidden sm:inline-block",
+            "item-status hidden sm:inline-block text-xs px-2 py-0.5 rounded-full border",
             item.status === 'Aktif' ? "bg-green-100 text-green-700" : 
-            item.status === 'Pasif' ? "bg-gray-100 text-gray-700" : "bg-red-100 text-red-700"
+            item.status === 'Pasif' ? "bg-gray-100 text-gray-700" : "bg-red-100 text-red-700",
+            "border-gray-200"
           )}>
             {item.status}
           </span>
         )}
 
-        <div className="item-actions ml-auto mr-2">
-          <button onClick={(e) => { e.stopPropagation(); onSelectItem(item); }}>
+        <div className="item-actions ml-auto mr-2 flex items-center gap-2 text-xs">
+          <button
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-100"
+            onClick={(e) => { e.stopPropagation(); onSelectItem(item); }}
+          >
              <Eye className="w-3 h-3" /> Detay
           </button>
-          <button onClick={(e) => { e.stopPropagation(); onEdit(item); }}>
+          <button
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-blue-200 text-blue-600 hover:bg-blue-50"
+            onClick={(e) => { e.stopPropagation(); onEdit(item); }}
+          >
              <Edit2 className="w-3 h-3" /> Düzenle
           </button>
           {/* <button onClick={(e) => { e.stopPropagation(); onDelete(item); }} className="text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-200">

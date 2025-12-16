@@ -208,9 +208,9 @@ const StrategicPlanning = ({ currentUser: propCurrentUser }) => {
         </div>
       </div>
 
-      <div className="strategic-planning-tree flex-1 overflow-hidden">
+      <div className="strategic-planning-tree flex-1 overflow-hidden text-gray-900">
         {/* Tree Container */}
-        <div className="tree-container shadow-sm bg-white">
+        <div className="tree-container shadow-sm bg-white rounded-xl border border-gray-200 overflow-auto">
           {treeData.length === 0 ? (
              <div className="flex flex-col items-center justify-center h-full text-gray-400">
                  <p>Görüntülenecek veri bulunamadı.</p>
