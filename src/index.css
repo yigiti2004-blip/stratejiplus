@@ -310,6 +310,14 @@
   color: #111827;
 }
 
+/* Reuse dark modal section title style inside budget modals */
+.modal-content .form-section-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #e5e7eb;
+}
+
 /* ===== FASIL LISTESI SECTION ===== */
 
 .fasil-listesi {

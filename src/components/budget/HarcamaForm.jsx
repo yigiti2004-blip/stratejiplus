@@ -97,15 +97,15 @@ const HarcamaForm = ({ editingItem, faaliyetler = [], fasiller = [], onSave, onC
   const aktivFasiller = validFasiller.filter(f => f && f.durum === 'Aktif');
 
   return (
-    <motion.form
+  <motion.form
       onSubmit={handleSubmit}
-      className="harcama-form"
+      className="harcama-form sp-item-form"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
     >
       <div className="form-section">
-        <h3>Üst Bilgiler</h3>
+        <h3 className="form-section-title">Üst Bilgiler</h3>
 
         <div className="form-group">
           <label>Faaliyet Seçimi * (SP Yönetimi'nden)</label>
@@ -185,7 +185,7 @@ const HarcamaForm = ({ editingItem, faaliyetler = [], fasiller = [], onSave, onC
       </div>
 
       <div className="form-section">
-        <h3>Tutar Bilgileri</h3>
+        <h3 className="form-section-title">Tutar Bilgileri</h3>
 
         <div className="form-group">
           <label>Tutar (KDV Hariç) *</label>
@@ -226,7 +226,7 @@ const HarcamaForm = ({ editingItem, faaliyetler = [], fasiller = [], onSave, onC
       </div>
 
       <div className="form-section">
-        <h3>Onay Bilgileri</h3>
+        <h3 className="form-section-title">Onay Bilgileri</h3>
 
         <div className="form-group">
           <label>YK Kararı No</label>
