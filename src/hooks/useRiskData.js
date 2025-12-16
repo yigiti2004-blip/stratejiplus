@@ -59,6 +59,13 @@ export const useRiskData = () => {
         const mapProject = (item) => ({
           ...item,
           companyId: item.company_id || item.companyId,
+          // Map project_name back to name for UI compatibility
+          name: item.project_name || item.name || '',
+          // Keep other fields that might be in the form but not in DB (for display only)
+          manager: item.manager || '',
+          startDate: item.start_date || item.startDate || '',
+          endDate: item.end_date || item.endDate || '',
+          status: item.status || 'Aktif',
         });
 
         const mappedRisks = risksData.map(mapRisk);
@@ -225,42 +232,79 @@ export const useRiskData = () => {
     const userId = currentUser?.id || currentUser?.userId;
     const companyId = currentUser?.companyId;
     
+    if (!companyId) {
+      console.error('No companyId available for adding project');
+      alert('Şirket bilgisi bulunamadı. Lütfen tekrar giriş yapın.');
+      return;
+    }
+    
+    // Only include fields that exist in risk_projects table schema
+    // Schema: id, risk_id, project_name, description, company_id, created_at, updated_at
     const newProject = {
-      ...projectData,
-      id: uuidv4(),
+      id: projectData.id || uuidv4(),
+      project_name: projectData.name || projectData.project_name || '',
+      description: projectData.description || null,
+      risk_id: projectData.riskId || projectData.risk_id || null,
     };
 
-    const { error } = await insertCompanyData('risk_projects', newProject, userId, companyId);
+    console.log('Adding project with data:', newProject);
+    const { data, error } = await insertCompanyData('risk_projects', newProject, userId, companyId);
     
     if (error) {
       console.error('Error adding project:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      alert(`Proje eklenirken hata oluştu: ${error.message || JSON.stringify(error)}`);
       return;
     }
 
+    console.log('Project added successfully, refreshing data...');
     // Refresh data
     const isAdmin = currentUser?.roleId === 'admin';
     const [projectsData] = await Promise.all([
       getCompanyData('risk_projects', userId, companyId, isAdmin),
     ]);
     
+    console.log('Loaded projects from Supabase:', projectsData);
+    
     const mapProject = (item) => ({
       ...item,
       companyId: item.company_id || item.companyId,
+      // Map project_name back to name for UI compatibility
+      name: item.project_name || item.name || '',
+      // Keep other fields that might be in the form but not in DB (for display only)
+      manager: item.manager || '',
+      startDate: item.start_date || item.startDate || '',
+      endDate: item.end_date || item.endDate || '',
+      status: item.status || 'Aktif',
     });
     
-    setProjects(projectsData.map(mapProject));
+    const mappedProjects = projectsData.map(mapProject);
+    console.log('Mapped projects for UI:', mappedProjects);
+    setProjects(mappedProjects);
+    return data;
   };
 
   const updateProject = async (id, updates) => {
     const userId = currentUser?.id || currentUser?.userId;
     
-    const { error } = await updateCompanyData('risk_projects', id, updates, userId);
+    // Map UI fields to DB fields
+    const updateData = {
+      project_name: updates.name || updates.project_name || null,
+      description: updates.description || null,
+      risk_id: updates.riskId || updates.risk_id || null,
+    };
+    
+    console.log('Updating project with data:', updateData);
+    const { error } = await updateCompanyData('risk_projects', id, updateData, userId);
     
     if (error) {
       console.error('Error updating project:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      alert(`Proje güncellenirken hata oluştu: ${error.message || JSON.stringify(error)}`);
       return;
     }
 
+    console.log('Project updated successfully, refreshing data...');
     // Refresh data
     const companyId = currentUser?.companyId;
     const isAdmin = currentUser?.roleId === 'admin';
@@ -268,12 +312,23 @@ export const useRiskData = () => {
       getCompanyData('risk_projects', userId, companyId, isAdmin),
     ]);
     
+    console.log('Loaded projects from Supabase after update:', projectsData);
+    
     const mapProject = (item) => ({
       ...item,
       companyId: item.company_id || item.companyId,
+      // Map project_name back to name for UI compatibility
+      name: item.project_name || item.name || '',
+      // Keep other fields that might be in the form but not in DB (for display only)
+      manager: item.manager || '',
+      startDate: item.start_date || item.startDate || '',
+      endDate: item.end_date || item.endDate || '',
+      status: item.status || 'Aktif',
     });
     
-    setProjects(projectsData.map(mapProject));
+    const mappedProjects = projectsData.map(mapProject);
+    console.log('Mapped projects for UI after update:', mappedProjects);
+    setProjects(mappedProjects);
   };
 
   const deleteProject = async (id) => {
@@ -296,6 +351,13 @@ export const useRiskData = () => {
     const mapProject = (item) => ({
       ...item,
       companyId: item.company_id || item.companyId,
+      // Map project_name back to name for UI compatibility
+      name: item.project_name || item.name || '',
+      // Keep other fields that might be in the form but not in DB (for display only)
+      manager: item.manager || '',
+      startDate: item.start_date || item.startDate || '',
+      endDate: item.end_date || item.endDate || '',
+      status: item.status || 'Aktif',
     });
     
     setProjects(projectsData.map(mapProject));

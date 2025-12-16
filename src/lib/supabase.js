@@ -83,6 +83,7 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
     indicators: ['id', 'code', 'name', 'target_id', 'target_value', 'actual_value', 'unit', 'measurement_type', 'frequency', 'responsible_unit', 'company_id', 'created_at', 'updated_at'],
     activities: ['id', 'code', 'name', 'indicator_id', 'target_id', 'responsible_unit', 'planned_budget', 'actual_budget', 'start_date', 'end_date', 'status', 'completion', 'company_id', 'created_at', 'updated_at'],
     risks: ['id', 'name', 'risk_type', 'description', 'probability', 'impact', 'score', 'status', 'responsible', 'related_record_type', 'related_record_id', 'company_id', 'created_at', 'updated_at'],
+    risk_projects: ['id', 'risk_id', 'project_name', 'description', 'company_id', 'created_at', 'updated_at'],
     expenses: ['id', 'budget_chapter_id', 'activity_id', 'description', 'amount', 'total_amount', 'expense_date', 'status', 'company_id', 'created_at', 'updated_at'],
     budget_chapters: ['id', 'code', 'name', 'company_id', 'created_at', 'updated_at'],
   };
@@ -116,6 +117,8 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
     // activities/targets use plannedStartDate/plannedEndDate in forms; map them to start_date/end_date
     start_date: data.startDate || data.plannedStartDate || data.start_date || null,
     end_date: data.endDate || data.plannedEndDate || data.end_date || null,
+    // risk_projects: map name to project_name
+    project_name: data.projectName || data.project_name || data.name || '',
     // Ensure required fields
     code: data.code || data.id || `SA-${Date.now()}`,
     name: data.name || '',
@@ -136,9 +139,11 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
   delete snakeCaseData.actualBudget;
   delete snakeCaseData.targetValue;
   delete snakeCaseData.actualValue;
-  delete snakeCaseData.startDate;
-  delete snakeCaseData.endDate;
-  delete snakeCaseData.companyId;
+    delete snakeCaseData.startDate;
+    delete snakeCaseData.endDate;
+    delete snakeCaseData.companyId;
+    delete snakeCaseData.projectName;
+    delete snakeCaseData.name; // Remove if it's for risk_projects (project_name is used instead)
   
   // Filter out fields that don't exist in the table schema
   const validFields = validColumns[table] || Object.keys(snakeCaseData);
