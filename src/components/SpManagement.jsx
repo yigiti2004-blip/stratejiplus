@@ -54,6 +54,7 @@ const SpManagement = ({ currentUser: propCurrentUser }) => {
         objectiveId: item.objective_id || item.objectiveId,
         targetId: item.target_id || item.targetId,
         indicatorId: item.indicator_id || item.indicatorId,
+        responsibleUnit: item.responsible_unit || item.responsibleUnit,
       }));
 
       setData({
