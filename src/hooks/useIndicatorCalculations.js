@@ -1,7 +1,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
+import { useAuthContext } from './useAuthContext';
+import { getCompanyData } from '@/lib/supabase';
 
 export const useIndicatorCalculations = () => {
+  const { currentUser } = useAuthContext();
   const [data, setData] = useState({
     areas: [],
     objectives: [],
@@ -12,13 +15,75 @@ export const useIndicatorCalculations = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  const loadData = useCallback(() => {
+  const loadData = useCallback(async () => {
     try {
-      const areas = JSON.parse(localStorage.getItem('strategicAreas') || '[]');
-      const objectives = JSON.parse(localStorage.getItem('strategicObjectives') || '[]');
-      const targets = JSON.parse(localStorage.getItem('targets') || '[]');
-      const indicators = JSON.parse(localStorage.getItem('indicators') || '[]');
-      const activities = JSON.parse(localStorage.getItem('activities') || '[]');
+      const companyId = currentUser?.companyId;
+      const userId = currentUser?.id || currentUser?.userId;
+      const isAdmin = currentUser?.roleId === 'admin';
+
+      let areas = [];
+      let objectives = [];
+      let targets = [];
+      let indicators = [];
+      let activities = [];
+
+      if (companyId && userId) {
+        const [
+          areasRaw,
+          objectivesRaw,
+          targetsRaw,
+          indicatorsRaw,
+          activitiesRaw,
+        ] = await Promise.all([
+          getCompanyData('strategic_areas', userId, companyId, isAdmin),
+          getCompanyData('strategic_objectives', userId, companyId, isAdmin),
+          getCompanyData('targets', userId, companyId, isAdmin),
+          getCompanyData('indicators', userId, companyId, isAdmin),
+          getCompanyData('activities', userId, companyId, isAdmin),
+        ]);
+
+        const mapAreas = (items) =>
+          (items || []).map((item) => ({
+            ...item,
+            companyId: item.company_id || item.companyId,
+          }));
+
+        const mapObjectives = (items) =>
+          (items || []).map((item) => ({
+            ...item,
+            companyId: item.company_id || item.companyId,
+            strategicAreaId: item.strategic_area_id || item.strategicAreaId,
+          }));
+
+        const mapTargets = (items) =>
+          (items || []).map((item) => ({
+            ...item,
+            companyId: item.company_id || item.companyId,
+            objectiveId: item.objective_id || item.objectiveId,
+          }));
+
+        const mapIndicators = (items) =>
+          (items || []).map((item) => ({
+            ...item,
+            companyId: item.company_id || item.companyId,
+            targetId: item.target_id || item.targetId,
+            targetValue: item.target_value ?? item.targetValue,
+          }));
+
+        const mapActivities = (items) =>
+          (items || []).map((item) => ({
+            ...item,
+            companyId: item.company_id || item.companyId,
+            targetId: item.target_id || item.targetId,
+          }));
+
+        areas = mapAreas(areasRaw);
+        objectives = mapObjectives(objectivesRaw);
+        targets = mapTargets(targetsRaw);
+        indicators = mapIndicators(indicatorsRaw);
+        activities = mapActivities(activitiesRaw);
+      }
+
       const monitoringRecords = JSON.parse(localStorage.getItem('activityMonitoringRecords') || '[]');
 
       setData({
@@ -27,23 +92,20 @@ export const useIndicatorCalculations = () => {
         targets,
         indicators,
         activities,
-        monitoringRecords
+        monitoringRecords,
       });
     } catch (error) {
-      console.error("Error loading calculation data:", error);
+      console.error('Error loading calculation data (Supabase):', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentUser?.companyId, currentUser?.id, currentUser?.userId, currentUser?.roleId]);
 
   useEffect(() => {
     loadData();
-    window.addEventListener('storage', loadData);
-    // Custom event for immediate updates within the same window
     window.addEventListener('monitoring-update', loadData);
     
     return () => {
-      window.removeEventListener('storage', loadData);
       window.removeEventListener('monitoring-update', loadData);
     };
   }, [loadData]);
