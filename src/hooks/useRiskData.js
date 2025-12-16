@@ -53,25 +53,43 @@ export const useRiskData = () => {
     const userId = currentUser?.id || currentUser?.userId;
     const companyId = currentUser?.companyId;
     
+    if (!companyId) {
+      console.error('No companyId available for adding risk');
+      return null;
+    }
+    
+    // Only include fields that exist in the risks table schema
     const newRisk = {
-      ...riskData,
       id: riskData.id || uuidv4(),
-      score: Number(riskData.probability) * Number(riskData.impact),
-      action_plans: [],
-      monitoring_logs: []
+      name: riskData.name || '',
+      risk_type: riskData.riskType || riskData.risk_type || 'sp',
+      description: riskData.description || null,
+      probability: Number(riskData.probability) || 3,
+      impact: Number(riskData.impact) || 3,
+      score: Number(riskData.probability || 3) * Number(riskData.impact || 3),
+      status: riskData.status || 'Aktif',
+      responsible: riskData.responsible || null,
+      related_record_type: riskData.relatedRecordType || riskData.related_record_type || null,
+      related_record_id: riskData.relatedRecordId || riskData.related_record_id || null,
     };
 
+    console.log('Adding risk with data:', newRisk);
     const { data, error } = await insertCompanyData('risks', newRisk, userId, companyId);
     
     if (error) {
       console.error('Error adding risk:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      alert(`Risk eklenirken hata oluştu: ${error.message || JSON.stringify(error)}`);
       return null;
     }
 
+    console.log('Risk added successfully, refreshing data...');
     // Refresh data
     const [risksData] = await Promise.all([
       getCompanyData('risks', userId, companyId, currentUser?.roleId === 'admin'),
     ]);
+    
+    console.log('Loaded risks from Supabase:', risksData);
     
     const mapRisk = (item) => ({
       ...item,
@@ -81,7 +99,9 @@ export const useRiskData = () => {
       monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
     });
     
-    setRisks(risksData.map(mapRisk));
+    const mappedRisks = risksData.map(mapRisk);
+    console.log('Mapped risks for UI:', mappedRisks);
+    setRisks(mappedRisks);
     return data;
   };
 
