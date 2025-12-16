@@ -83,7 +83,7 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
     indicators: ['id', 'code', 'name', 'target_id', 'target_value', 'actual_value', 'unit', 'measurement_type', 'frequency', 'responsible_unit', 'company_id', 'created_at', 'updated_at'],
     activities: ['id', 'code', 'name', 'indicator_id', 'target_id', 'responsible_unit', 'planned_budget', 'actual_budget', 'start_date', 'end_date', 'status', 'completion', 'company_id', 'created_at', 'updated_at'],
     risks: ['id', 'name', 'risk_type', 'description', 'probability', 'impact', 'score', 'status', 'responsible', 'related_record_type', 'related_record_id', 'company_id', 'created_at', 'updated_at'],
-    risk_projects: ['id', 'risk_id', 'project_name', 'description', 'company_id', 'created_at', 'updated_at'],
+    risk_projects: ['id', 'risk_id', 'project_name', 'description', 'manager', 'start_date', 'end_date', 'status', 'company_id', 'created_at', 'updated_at'],
     expenses: ['id', 'budget_chapter_id', 'activity_id', 'description', 'amount', 'total_amount', 'expense_date', 'status', 'company_id', 'created_at', 'updated_at'],
     budget_chapters: ['id', 'code', 'name', 'company_id', 'created_at', 'updated_at'],
   };
@@ -119,6 +119,11 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
     end_date: data.endDate || data.plannedEndDate || data.end_date || null,
     // risk_projects: map name to project_name
     project_name: data.projectName || data.project_name || data.name || '',
+    // risk_projects: map manager, dates, status
+    manager: data.manager || null,
+    start_date: data.startDate || data.start_date || null,
+    end_date: data.endDate || data.end_date || null,
+    status: data.status || 'Aktif',
     // Ensure required fields
     code: data.code || data.id || `SA-${Date.now()}`,
     name: data.name || '',

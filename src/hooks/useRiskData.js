@@ -238,13 +238,16 @@ export const useRiskData = () => {
       return;
     }
     
-    // Only include fields that exist in risk_projects table schema
-    // Schema: id, risk_id, project_name, description, company_id, created_at, updated_at
+    // Include all fields from the form
     const newProject = {
       id: projectData.id || uuidv4(),
       project_name: projectData.name || projectData.project_name || '',
       description: projectData.description || null,
       risk_id: projectData.riskId || projectData.risk_id || null,
+      manager: projectData.manager || null,
+      start_date: projectData.startDate || projectData.start_date || null,
+      end_date: projectData.endDate || projectData.end_date || null,
+      status: projectData.status || 'Aktif',
     };
 
     console.log('Adding project with data:', newProject);
@@ -292,6 +295,10 @@ export const useRiskData = () => {
       project_name: updates.name || updates.project_name || null,
       description: updates.description || null,
       risk_id: updates.riskId || updates.risk_id || null,
+      manager: updates.manager || null,
+      start_date: updates.startDate || updates.start_date || null,
+      end_date: updates.endDate || updates.end_date || null,
+      status: updates.status || null,
     };
     
     console.log('Updating project with data:', updateData);
