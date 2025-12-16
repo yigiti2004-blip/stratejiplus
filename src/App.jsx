@@ -295,7 +295,7 @@ function App() {
           <div className="flex-1 p-4 md:p-8 lg:p-10 pb-24 md:pb-10 max-w-[1600px] mx-auto w-full">
             <Suspense fallback={<div className="text-white p-4">Yükleniyor...</div>}>
               {currentView === 'dashboard' && <Dashboard currentUser={currentUser} />}
-              {currentView === 'strategic-planning' && <StrategicPlanning currentUser={currentUser} />}
+              {currentView === 'strategic-planning' && <StrategicSnapshot />}
               {currentView === 'sp-management' && <SpManagement currentUser={currentUser} />}
               {currentView === 'budget' && <BudgetManagement currentUser={currentUser} />}
               {currentView === 'strategic-plan-monitoring' && <StrategicPlanMonitoringModule currentUser={currentUser} />}

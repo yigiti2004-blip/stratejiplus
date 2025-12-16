@@ -7,9 +7,12 @@ import {
   ArrowRight, Eye, Activity
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '@/hooks/useAuthContext';
+import { getCompanyData } from '@/lib/supabase';
 
 export default function StrategicSnapshot() {
   const navigate = useNavigate();
+  const { currentUser } = useAuthContext();
   const [strategies, setStrategies] = useState([]);
   const [expandedNodes, setExpandedNodes] = useState({});
   const [selectedElement, setSelectedElement] = useState(null);
@@ -202,82 +205,138 @@ export default function StrategicSnapshot() {
     });
   };
 
-  // Load all data from localStorage
+  // Load all data (Supabase for SP hierarchy, localStorage for other modules)
   useEffect(() => {
-    // Verify all required data is in localStorage
-    const requiredKeys = ['strategicAreas', 'strategicObjectives', 'targets', 'activities', 'monitoringHistory', 'budgetChapters', 'expenses', 'risks', 'revisions'];
-    requiredKeys.forEach(key => {
-      const data = localStorage.getItem(key);
-      console.log(`localStorage['${key}']:`, data ? `${data.length} bytes` : 'MISSING');
-    });
-
-    const loadData = () => {
+    const loadData = async () => {
       try {
-        // Horizon's Data Integration: Build hierarchy from normalized tables
-        const areas = JSON.parse(localStorage.getItem('strategicAreas')) || [];
-        const objectives = JSON.parse(localStorage.getItem('strategicObjectives')) || [];
-        const targets = JSON.parse(localStorage.getItem('targets')) || [];
-        let activities = JSON.parse(localStorage.getItem('activities')) || [];
-        const budgetChapters = JSON.parse(localStorage.getItem('budgetChapters')) || [];
-        const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+        // --- 1) Build Strategic Plan hierarchy from Supabase (per tenant) ---
+        const companyId = currentUser?.companyId;
+        const userId = currentUser?.id || currentUser?.userId;
+        const isAdmin = currentUser?.roleId === 'admin';
+
+        let areas = [];
+        let objectives = [];
+        let targets = [];
+        let activities = [];
+
+        if (companyId && userId) {
+          const [
+            areasRaw,
+            objectivesRaw,
+            targetsRaw,
+            activitiesRaw,
+          ] = await Promise.all([
+            getCompanyData('strategic_areas', userId, companyId, isAdmin),
+            getCompanyData('strategic_objectives', userId, companyId, isAdmin),
+            getCompanyData('targets', userId, companyId, isAdmin),
+            getCompanyData('activities', userId, companyId, isAdmin),
+          ]);
+
+          const mapAreas = (items) =>
+            (items || []).map((item) => ({
+              ...item,
+              companyId: item.company_id || item.companyId,
+            }));
+
+          const mapObjectives = (items) =>
+            (items || []).map((item) => ({
+              ...item,
+              companyId: item.company_id || item.companyId,
+              strategicAreaId: item.strategic_area_id || item.strategicAreaId,
+            }));
+
+          const mapTargets = (items) =>
+            (items || []).map((item) => ({
+              ...item,
+              companyId: item.company_id || item.companyId,
+              objectiveId: item.objective_id || item.objectiveId,
+              completion: Number(item.completion_percentage ?? item.completion ?? 0),
+            }));
+
+          const mapActivities = (items) =>
+            (items || []).map((item) => ({
+              ...item,
+              companyId: item.company_id || item.companyId,
+              targetId: item.target_id || item.targetId,
+              budgetChapterId: item.budget_chapter_id || item.budgetChapterId,
+              plannedBudget: item.planned_budget ?? item.plannedBudget,
+              completion: Number(item.completion ?? 0),
+            }));
+
+          areas = mapAreas(areasRaw);
+          objectives = mapObjectives(objectivesRaw);
+          targets = mapTargets(targetsRaw);
+          activities = mapActivities(activitiesRaw);
+        } else {
+          // Fallback to existing localStorage data (should be rare now)
+          areas = JSON.parse(localStorage.getItem('strategicAreas') || '[]');
+          objectives = JSON.parse(localStorage.getItem('strategicObjectives') || '[]');
+          targets = JSON.parse(localStorage.getItem('targets') || '[]');
+          activities = JSON.parse(localStorage.getItem('activities') || '[]');
+        }
+
+        // --- 2) Budget & other modules (still using existing logic) ---
+        const budgetChapters = JSON.parse(localStorage.getItem('budgetChapters') || '[]');
+        const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
 
         // Enrich activities with chapter info & budget for compatibility
-        activities = activities.map(a => {
-          const chapter = budgetChapters.find(c => c.id === a.budgetChapterId);
+        activities = activities.map((a) => {
+          const chapter = budgetChapters.find((c) => c.id === (a.budgetChapterId || a.budget_chapter_id));
           return {
             ...a,
             chapterCode: chapter?.code || '-',
             chapterName: chapter?.name || '-',
-            estimatedBudget: Number(a.plannedBudget) || 0,
-            completion: Number(a.completion) || 0
+            estimatedBudget: Number(a.plannedBudget ?? a.planned_budget ?? 0),
+            completion: Number(a.completion ?? 0),
           };
         });
 
-        const strategiesData = areas.map(area => ({
+        const strategiesData = areas.map((area) => ({
           ...area,
           objectives: objectives
-            .filter(o => o.strategicAreaId === area.id)
-            .map(obj => ({
+            .filter((o) => o.strategicAreaId === area.id)
+            .map((obj) => ({
               ...obj,
               targets: targets
-                .filter(t => t.objectiveId === obj.id)
-                .map(target => ({
+                .filter((t) => t.objectiveId === obj.id)
+                .map((target) => ({
                   ...target,
-                  completion: Number(target.completion) || 0,
-                  activities: activities.filter(a => a.targetId === target.id)
-                }))
-            }))
+                  activities: activities.filter((a) => a.targetId === target.id),
+                })),
+            })),
         }));
 
         setStrategies(strategiesData);
 
-        const trackingRecords = JSON.parse(localStorage.getItem('monitoringHistory')) || [];
-        const risksData = JSON.parse(localStorage.getItem('risks')) || [];
-        const revisionsData = JSON.parse(localStorage.getItem('revisions')) || [];
+        const trackingRecords = JSON.parse(localStorage.getItem('monitoringHistory') || '[]');
+        const risksData = JSON.parse(localStorage.getItem('risks') || '[]');
+        const revisionsData = JSON.parse(localStorage.getItem('revisions') || '[]');
 
         // Build budgetData map for lookups
         const budgetData = {};
-        activities.forEach(act => {
-             const key = `${act.chapterCode}-${act.chapterName}`;
-             if (!budgetData[key]) budgetData[key] = { activities: {} };
-             
-             // Get actual expenses for this activity
-             const actExpenses = expenses.filter(e => e.activityId === act.id && e.status !== 'Reddedildi');
-             
-             // Also store raw expenses list for timeline
-             const expenseList = actExpenses.map(e => ({
-               date: e.date,
-               description: e.description,
-               amount: Number(e.amount),
-               notes: ''
-             }));
+        activities.forEach((act) => {
+          const key = `${act.chapterCode}-${act.chapterName}`;
+          if (!budgetData[key]) budgetData[key] = { activities: {} };
 
-             const actual = actExpenses.reduce((sum, e) => sum + (Number(e.amount)||0), 0);
-             
-             budgetData[key].activities[act.id] = { 
-               actualSpending: actual,
-               expenses: expenseList 
-             };
+          // Get actual expenses for this activity
+          const actExpenses = expenses.filter(
+            (e) => (e.activityId || e.activity_id) === act.id && e.status !== 'Reddedildi'
+          );
+
+          // Also store raw expenses list for timeline
+          const expenseList = actExpenses.map((e) => ({
+            date: e.date || e.expense_date,
+            description: e.description,
+            amount: Number(e.amount),
+            notes: '',
+          }));
+
+          const actual = actExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+
+          budgetData[key].activities[act.id] = {
+            actualSpending: actual,
+            expenses: expenseList,
+          };
         });
 
         // Auto-expand first area
@@ -286,12 +345,12 @@ export default function StrategicSnapshot() {
           selectElement('area', strategiesData[0], trackingRecords, budgetData, risksData, revisionsData);
         }
       } catch (error) {
-        console.error('Veri yükleme hatası:', error);
+        console.error('Veri yükleme hatası (Supabase + localStorage):', error);
       }
     };
 
     loadData();
-  }, []);
+  }, [currentUser?.companyId, currentUser?.id, currentUser?.userId, currentUser?.roleId]);
 
   // Toggle expand/collapse
   const toggleNode = (nodeId) => {
