@@ -64,18 +64,6 @@ export default function Navigation({
       roles: ['admin', 'unit-manager', 'user', 'view-only']
     },
     {
-      id: 'monitoring',
-      label: 'İzleme Kayıtları',
-      icon: FileText,
-      roles: ['admin', 'unit-manager', 'user']
-    },
-    {
-      id: 'target-completion',
-      label: 'Hedef Tamamlama',
-      icon: CheckCircle,
-      roles: ['admin', 'unit-manager', 'user']
-    },
-    {
       id: 'budget',
       label: 'Bütçe Yönetimi',
       icon: Wallet,

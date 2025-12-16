@@ -9,8 +9,6 @@ import StrategicPlanning from '@/components/StrategicPlanning';
 import StrategicSnapshot from '@/components/StrategicSnapshot';
 import SpManagement from '@/components/SpManagement';
 import AnnualBusinessPlan from '@/components/AnnualBusinessPlan';
-import MonitoringRecords from '@/components/MonitoringRecords';
-import TargetCompletion from '@/components/TargetCompletion';
 import UserManagementModule from '@/components/userManagement/UserManagementModule';
 import BudgetManagement from '@/components/budget/BudgetManagement';
 import RevisionManagement from '@/components/RevisionManagement';
