@@ -279,7 +279,7 @@ export default function StrategicSnapshot() {
         const budgetChapters = JSON.parse(localStorage.getItem('budgetChapters') || '[]');
         const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
 
-        // Enrich activities with chapter info & budget for compatibility
+        // Enrich activities with chapter info, budget & responsible unit for compatibility
         activities = activities.map((a) => {
           const chapter = budgetChapters.find((c) => c.id === (a.budgetChapterId || a.budget_chapter_id));
           return {
@@ -288,6 +288,7 @@ export default function StrategicSnapshot() {
             chapterName: chapter?.name || '-',
             estimatedBudget: Number(a.plannedBudget ?? a.planned_budget ?? 0),
             completion: Number(a.completion ?? 0),
+            responsibleUnit: a.responsibleUnit || a.responsible_unit || '-',
           };
         });
 

@@ -72,6 +72,8 @@ const StrategicPlanning = ({ currentUser: propCurrentUser }) => {
         objectiveId: item.objective_id || item.objectiveId,
         targetId: item.target_id || item.targetId,
         indicatorId: item.indicator_id || item.indicatorId,
+        // Ensure responsibleUnit is always populated from DB field
+        responsibleUnit: item.responsible_unit || item.responsibleUnit,
       }));
 
       const areas = mapData(areasRaw);
