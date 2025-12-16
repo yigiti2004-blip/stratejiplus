@@ -104,8 +104,10 @@ const ActivityBasedView = ({ areas, objectives, targets, activities, indicators 
             value={filters.areaId} 
             onValueChange={(val) => setFilters(prev => ({ ...prev, areaId: val, objectiveId: 'all', targetId: 'all', currentPage: 1 }))}
           >
-            <SelectTrigger><SelectValue placeholder="Alan Seç" /></SelectTrigger>
-            <SelectContent>
+            <SelectTrigger className="bg-white text-gray-900">
+              <SelectValue placeholder="Alan Seç" />
+            </SelectTrigger>
+            <SelectContent className="bg-white text-gray-900">
               <SelectItem value="all">Tüm Alanlar</SelectItem>
               {areas.map(a => <SelectItem key={a.id} value={a.id}>{a.code}</SelectItem>)}
             </SelectContent>
@@ -118,8 +120,10 @@ const ActivityBasedView = ({ areas, objectives, targets, activities, indicators 
             onValueChange={(val) => setFilters(prev => ({ ...prev, objectiveId: val, targetId: 'all', currentPage: 1 }))}
             disabled={availableObjectives.length === 0}
           >
-            <SelectTrigger><SelectValue placeholder="Amaç Seç" /></SelectTrigger>
-            <SelectContent>
+            <SelectTrigger className="bg-white text-gray-900">
+              <SelectValue placeholder="Amaç Seç" />
+            </SelectTrigger>
+            <SelectContent className="bg-white text-gray-900">
               <SelectItem value="all">Tüm Amaçlar</SelectItem>
               {availableObjectives.map(o => <SelectItem key={o.id} value={o.id}>{o.code}</SelectItem>)}
             </SelectContent>
@@ -132,8 +136,10 @@ const ActivityBasedView = ({ areas, objectives, targets, activities, indicators 
             onValueChange={(val) => setFilters(prev => ({ ...prev, targetId: val, currentPage: 1 }))}
             disabled={availableTargets.length === 0}
           >
-            <SelectTrigger><SelectValue placeholder="Hedef Seç" /></SelectTrigger>
-            <SelectContent>
+            <SelectTrigger className="bg-white text-gray-900">
+              <SelectValue placeholder="Hedef Seç" />
+            </SelectTrigger>
+            <SelectContent className="bg-white text-gray-900">
               <SelectItem value="all">Tüm Hedefler</SelectItem>
               {availableTargets.map(t => <SelectItem key={t.id} value={t.id}>{t.code}</SelectItem>)}
             </SelectContent>
@@ -145,8 +151,10 @@ const ActivityBasedView = ({ areas, objectives, targets, activities, indicators 
             value={filters.responsible} 
             onValueChange={(val) => setFilters(prev => ({ ...prev, responsible: val, currentPage: 1 }))}
           >
-            <SelectTrigger><SelectValue placeholder="Birim Seç" /></SelectTrigger>
-            <SelectContent>
+          <SelectTrigger className="bg-white text-gray-900">
+            <SelectValue placeholder="Birim Seç" />
+          </SelectTrigger>
+            <SelectContent className="bg-white text-gray-900">
               <SelectItem value="all">Tüm Birimler</SelectItem>
               {uniqueResponsibles.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
             </SelectContent>
