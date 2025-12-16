@@ -1,5 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuthContext } from './useAuthContext';
+import { getCompanyData } from '@/lib/supabase';
 
+// Local default demo data (used only when Supabase is not configured)
 const DEFAULT_FASILLER = [
   {
     fasil_id: 1,
@@ -11,52 +14,87 @@ const DEFAULT_FASILLER = [
     mali_yil: 2024,
     sorumlu_birim: 'İK Müdürlüğü',
     sorumlu_kisi: 'Ahmet Yılmaz',
-    durum: 'Aktif'
+    durum: 'Aktif',
   },
-  {
-    fasil_id: 2,
-    fasil_kodu: 'F02',
-    fasil_adi: 'Hizmet Alımları',
-    fasil_aciklama: 'Dış kaynak hizmetleri',
-    yillik_toplam_limit: 300000,
-    yillik_tahsis_limit: 280000,
-    mali_yil: 2024,
-    sorumlu_birim: 'Operasyon Müdürlüğü',
-    sorumlu_kisi: 'Mehmet Demir',
-    durum: 'Aktif'
-  },
-  {
-    fasil_id: 3,
-    fasil_kodu: 'F03',
-    fasil_adi: 'Yatırım Giderleri',
-    fasil_aciklama: 'Sabit kıymet alımları',
-    yillik_toplam_limit: 200000,
-    yillik_tahsis_limit: 200000,
-    mali_yil: 2024,
-    sorumlu_birim: 'Teknoloji Müdürlüğü',
-    sorumlu_kisi: 'Can Öztürk',
-    durum: 'Aktif'
-  }
 ];
 
 export const useFasiller = () => {
-  const [fasiller, setFasiller] = useState(() => {
+  const { currentUser } = useAuthContext();
+  const [fasiller, setFasiller] = useState([]);
+
+  const loadFasiller = useCallback(async () => {
     try {
-      const stored = localStorage.getItem('fasiller');
-      return stored ? JSON.parse(stored) : DEFAULT_FASILLER;
-    } catch (e) {
-      console.error("Failed to parse fasiller from localStorage", e);
-      return DEFAULT_FASILLER;
+      const hasSupabase =
+        !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const companyId = currentUser?.companyId;
+      const userId = currentUser?.id || currentUser?.userId;
+      const isAdmin = currentUser?.roleId === 'admin';
+
+      if (hasSupabase && companyId && userId) {
+        const chaptersRaw = await getCompanyData('budget_chapters', userId, companyId, isAdmin);
+
+        const mapped =
+          (chaptersRaw || []).map((item) => ({
+            ...item,
+            fasil_id: item.id ?? item.fasil_id,
+            fasil_kodu: item.code ?? item.fasil_kodu,
+            fasil_adi: item.name ?? item.fasil_adi,
+            // Optional fields if they exist in schema
+            fasil_aciklama: item.description ?? item.fasil_aciklama ?? '',
+            yillik_toplam_limit:
+              item.yearly_total_limit ?? item.yillik_toplam_limit ?? item.limit ?? 0,
+            yillik_tahsis_limit:
+              item.yearly_allocation_limit ?? item.yillik_tahsis_limit ?? null,
+            mali_yil: item.fiscal_year ?? item.mali_yil ?? new Date().getFullYear(),
+            sorumlu_birim: item.responsible_unit ?? item.sorumlu_birim ?? '',
+            sorumlu_kisi: item.responsible_person ?? item.sorumlu_kisi ?? '',
+            durum: item.status ?? item.durum ?? 'Aktif',
+          })) || [];
+
+        setFasiller(mapped);
+        // Mirror to localStorage just for client-side caching
+        try {
+          localStorage.setItem('fasiller', JSON.stringify(mapped));
+        } catch {
+          // ignore cache errors
+        }
+      } else {
+        // Fallback: try localStorage, then demo defaults
+        try {
+          const stored = localStorage.getItem('fasiller');
+          if (stored) {
+            setFasiller(JSON.parse(stored));
+          } else {
+            setFasiller(DEFAULT_FASILLER);
+          }
+        } catch (e) {
+          console.error('Failed to parse fasiller from localStorage', e);
+          setFasiller(DEFAULT_FASILLER);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load budget chapters (fasiller):', error);
+      // Last-resort fallback
+      if (!fasiller || fasiller.length === 0) {
+        setFasiller(DEFAULT_FASILLER);
+      }
     }
-  });
+  }, [currentUser?.companyId, currentUser?.id, currentUser?.userId, currentUser?.roleId]);
 
   useEffect(() => {
+    loadFasiller();
+  }, [loadFasiller]);
+
+  // Whenever fasiller changes (due to local edits), keep localStorage in sync for calculations
+  useEffect(() => {
     try {
-      localStorage.setItem('fasiller', JSON.stringify(fasiller));
-      // Dispatch storage event so other tabs/components can react
-      window.dispatchEvent(new Event('storage'));
+      if (fasiller && fasiller.length > 0) {
+        localStorage.setItem('fasiller', JSON.stringify(fasiller));
+        window.dispatchEvent(new Event('storage'));
+      }
     } catch (e) {
-      console.error("Failed to save fasiller to localStorage", e);
+      console.error('Failed to save fasiller to localStorage', e);
     }
   }, [fasiller]);
 
