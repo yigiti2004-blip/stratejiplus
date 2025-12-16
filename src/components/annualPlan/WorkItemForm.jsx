@@ -74,10 +74,10 @@ const WorkItemForm = ({ onClose, onSave, onDelete, initialData, selectedYear }) 
               onValueChange={(val) => handleChange('sourceType', val)}
               disabled={!!initialData} 
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white text-gray-900">
                 <SelectValue placeholder="Seçiniz" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white text-gray-900">
                 <SelectItem value="yıla-özgü">Yıla Özgü Planlı İş</SelectItem>
                 <SelectItem value="kurumsal-süreklilik">Kurumsal Süreklilik Faaliyeti</SelectItem>
               </SelectContent>
@@ -92,10 +92,10 @@ const WorkItemForm = ({ onClose, onSave, onDelete, initialData, selectedYear }) 
                     value={formData.period} 
                     onValueChange={(val) => handleChange('period', val)}
                   >
-                    <SelectTrigger className="bg-white border-purple-200">
+                  <SelectTrigger className="bg-white border-purple-200 text-gray-900">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white text-gray-900">
                       <SelectItem value="her-yıl">Her Yıl</SelectItem>
                       <SelectItem value="3-ayda-bir">3 Ayda Bir</SelectItem>
                       <SelectItem value="6-ayda-bir">6 Ayda Bir</SelectItem>
@@ -126,6 +126,7 @@ const WorkItemForm = ({ onClose, onSave, onDelete, initialData, selectedYear }) 
               required
               value={formData.responsibleUnit}
               onChange={(e) => handleChange('responsibleUnit', e.target.value)}
+              className="text-gray-900"
               placeholder="Örn: İnsan Kaynakları"
             />
           </div>
@@ -138,6 +139,7 @@ const WorkItemForm = ({ onClose, onSave, onDelete, initialData, selectedYear }) 
                 required
                 value={formData.startDate}
                 onChange={(e) => handleChange('startDate', e.target.value)}
+                className="text-gray-900"
               />
             </div>
             <div className="space-y-2">
@@ -147,6 +149,7 @@ const WorkItemForm = ({ onClose, onSave, onDelete, initialData, selectedYear }) 
                 required
                 value={formData.endDate}
                 onChange={(e) => handleChange('endDate', e.target.value)}
+                className="text-gray-900"
               />
             </div>
           </div>
