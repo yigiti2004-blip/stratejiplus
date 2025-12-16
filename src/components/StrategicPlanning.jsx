@@ -82,6 +82,26 @@ const StrategicPlanning = ({ currentUser: propCurrentUser }) => {
       const organizations = mapData(organizationsRaw);
 
       const allData = { areas, objectives, targets, indicators, activities, organizations };
+      
+      // Debug: log what we received from Supabase for this tenant
+      console.log('🔎 StrategicPlanning loadData: companyId =', companyId, 'userId =', userId, 'isAdmin =', isAdmin);
+      console.log('  areas:', areas.length, 'objectives:', objectives.length, 'targets:', targets.length, 'indicators:', indicators.length, 'activities:', activities.length);
+      if (areas.length) {
+        console.log('  sample area:', areas[0]);
+      }
+      if (objectives.length) {
+        console.log('  sample objective:', objectives[0]);
+      }
+      if (targets.length) {
+        console.log('  sample target:', targets[0]);
+      }
+      if (indicators.length) {
+        console.log('  sample indicator:', indicators[0]);
+      }
+      if (activities.length) {
+        console.log('  sample activity:', activities[0]);
+      }
+
       setRawData(allData);
       
       const hierarchy = buildHierarchy(allData);
