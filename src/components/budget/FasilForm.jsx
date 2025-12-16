@@ -72,9 +72,9 @@ const FasilForm = ({ editingItem, onSave, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="fasil-form">
+    <form onSubmit={handleSubmit} className="fasil-form sp-item-form">
       <div className="form-section">
-        <h3>Fasıl Bilgileri</h3>
+        <h3 className="form-section-title">Fasıl Bilgileri</h3>
 
         <div className="form-group">
           <label>Fasıl Kodu *</label>
@@ -114,7 +114,7 @@ const FasilForm = ({ editingItem, onSave, onCancel }) => {
       </div>
 
       <div className="form-section">
-        <h3>Limit Bilgileri</h3>
+        <h3 className="form-section-title">Limit Bilgileri</h3>
 
         <div className="form-group">
           <label>Yıllık Toplam Limit *</label>
@@ -157,7 +157,7 @@ const FasilForm = ({ editingItem, onSave, onCancel }) => {
       </div>
 
       <div className="form-section">
-        <h3>Sorumluluk Bilgileri</h3>
+        <h3 className="form-section-title">Sorumluluk Bilgileri</h3>
 
         <div className="form-group">
           <label>Sorumlu Birim *</label>
