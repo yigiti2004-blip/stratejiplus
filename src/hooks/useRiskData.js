@@ -27,6 +27,8 @@ export const useRiskData = () => {
         const mapRisk = (item) => ({
           ...item,
           companyId: item.company_id || item.companyId,
+          // normalize casing for UI
+          riskType: item.risk_type || item.riskType || 'sp',
           actionPlans: item.action_plans || item.actionPlans || [],
           monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
         });
@@ -74,6 +76,7 @@ export const useRiskData = () => {
     const mapRisk = (item) => ({
       ...item,
       companyId: item.company_id || item.companyId,
+      riskType: item.risk_type || item.riskType || 'sp',
       actionPlans: item.action_plans || item.actionPlans || [],
       monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
     });
@@ -108,6 +111,7 @@ export const useRiskData = () => {
     const mapRisk = (item) => ({
       ...item,
       companyId: item.company_id || item.companyId,
+      riskType: item.risk_type || item.riskType || 'sp',
       actionPlans: item.action_plans || item.actionPlans || [],
       monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
     });
