@@ -36,14 +36,25 @@ export const useRiskData = () => {
         console.log('Raw projects data from Supabase:', projectsData);
 
         // Map snake_case to camelCase
-        const mapRisk = (item) => ({
-          ...item,
-          companyId: item.company_id || item.companyId,
-          // normalize casing for UI
-          riskType: item.risk_type || item.riskType || 'sp',
-          actionPlans: item.action_plans || item.actionPlans || [],
-          monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
-        });
+        const mapRisk = (item) => {
+          const probability = Number(item.probability || item.prob || 0);
+          const impact = Number(item.impact || 0);
+          const scoreFromDb = item.score;
+          const computedScore =
+            !Number.isNaN(probability) && !Number.isNaN(impact)
+              ? probability * impact
+              : 0;
+
+          return {
+            ...item,
+            companyId: item.company_id || item.companyId,
+            // normalize casing for UI
+            riskType: item.risk_type || item.riskType || 'sp',
+            score: scoreFromDb ?? computedScore,
+            actionPlans: item.action_plans || item.actionPlans || [],
+            monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
+          };
+        };
 
         const mapProject = (item) => ({
           ...item,
@@ -77,7 +88,10 @@ export const useRiskData = () => {
       return null;
     }
     
-    // Only include fields that exist in the risks table schema
+    // Only include fields that exist in the risks table schema.
+    // NOTE: We deliberately do NOT send `score` because the column is configured
+    // in Supabase to use its own default/generation; sending a value causes
+    // "cannot insert a non-DEFAULT value into column \"score\"" errors.
     const newRisk = {
       id: riskData.id || uuidv4(),
       name: riskData.name || '',
@@ -85,7 +99,6 @@ export const useRiskData = () => {
       description: riskData.description || null,
       probability: Number(riskData.probability) || 3,
       impact: Number(riskData.impact) || 3,
-      score: Number(riskData.probability || 3) * Number(riskData.impact || 3),
       status: riskData.status || 'Aktif',
       responsible: riskData.responsible || null,
       related_record_type: riskData.relatedRecordType || riskData.related_record_type || null,
@@ -110,13 +123,24 @@ export const useRiskData = () => {
     
     console.log('Loaded risks from Supabase:', risksData);
     
-    const mapRisk = (item) => ({
-      ...item,
-      companyId: item.company_id || item.companyId,
-      riskType: item.risk_type || item.riskType || 'sp',
-      actionPlans: item.action_plans || item.actionPlans || [],
-      monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
-    });
+    const mapRisk = (item) => {
+      const probability = Number(item.probability || item.prob || 0);
+      const impact = Number(item.impact || 0);
+      const scoreFromDb = item.score;
+      const computedScore =
+        !Number.isNaN(probability) && !Number.isNaN(impact)
+          ? probability * impact
+          : 0;
+
+      return {
+        ...item,
+        companyId: item.company_id || item.companyId,
+        riskType: item.risk_type || item.riskType || 'sp',
+        score: scoreFromDb ?? computedScore,
+        actionPlans: item.action_plans || item.actionPlans || [],
+        monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
+      };
+    };
     
     const mappedRisks = risksData.map(mapRisk);
     console.log('Mapped risks for UI:', mappedRisks);
@@ -147,13 +171,24 @@ export const useRiskData = () => {
       getCompanyData('risks', userId, companyId, isAdmin),
     ]);
     
-    const mapRisk = (item) => ({
-      ...item,
-      companyId: item.company_id || item.companyId,
-      riskType: item.risk_type || item.riskType || 'sp',
-      actionPlans: item.action_plans || item.actionPlans || [],
-      monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
-    });
+    const mapRisk = (item) => {
+      const probability = Number(item.probability || item.prob || 0);
+      const impact = Number(item.impact || 0);
+      const scoreFromDb = item.score;
+      const computedScore =
+        !Number.isNaN(probability) && !Number.isNaN(impact)
+          ? probability * impact
+          : 0;
+
+      return {
+        ...item,
+        companyId: item.company_id || item.companyId,
+        riskType: item.risk_type || item.riskType || 'sp',
+        score: scoreFromDb ?? computedScore,
+        actionPlans: item.action_plans || item.actionPlans || [],
+        monitoringLogs: item.monitoring_logs || item.monitoringLogs || [],
+      };
+    };
     
     setRisks(risksData.map(mapRisk));
   };
