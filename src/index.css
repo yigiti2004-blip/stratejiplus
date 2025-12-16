@@ -570,9 +570,9 @@
 .modal-content .form-input,
 .modal-content textarea,
 .modal-content select {
-  background-color: #020617;
-  color: #e5e7eb;
-  border-color: #374151;
+  background-color: #020617 !important;
+  color: #e5e7eb !important;
+  border-color: #374151 !important;
 }
 
 .modal-content .form-input::placeholder,
@@ -588,6 +588,11 @@
 }
 
 .modal-content .form-group label {
+  color: #e5e7eb;
+}
+
+.modal-content select option {
+  background-color: #020617;
   color: #e5e7eb;
 }
 
@@ -638,6 +643,13 @@
 
 .sp-item-form textarea {
   min-height: 96px;
+}
+
+.sp-item-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
 }
 
 /* ===== RESPONSIVE ===== */
