@@ -628,6 +628,7 @@
 
 .sp-item-form textarea {
   min-height: 96px;
+  border: 1px solid #374151;
 }
 
 .sp-item-form .form-actions {
