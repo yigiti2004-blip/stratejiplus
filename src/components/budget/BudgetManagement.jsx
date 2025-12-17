@@ -10,7 +10,7 @@ import BudgetReports from './BudgetReports';
 
 const BudgetManagement = ({ currentUser }) => {
   const { fasiller, setFasiller } = useFasiller();
-  const { harcamalar, setHarcamalar } = useHarcamalar();
+  const { harcamalar, addHarcama, updateHarcama, deleteHarcama } = useHarcamalar();
   const { faaliyetler } = useFaaliyetler();
   const calculations = useBudgetCalculations(harcamalar, fasiller, faaliyetler);
 
@@ -31,16 +31,12 @@ const BudgetManagement = ({ currentUser }) => {
     setShowHarcamaModal(true);
   };
 
-  const handleSaveHarcama = (formData) => {
+  const handleSaveHarcama = async (formData) => {
     try {
       if (editingHarcama) {
-        setHarcamalar(harcamalar.map(h =>
-          h.harcama_id === editingHarcama.harcama_id
-            ? { ...formData, harcama_id: editingHarcama.harcama_id }
-            : h
-        ));
+        await updateHarcama(editingHarcama.harcama_id, formData);
       } else {
-        setHarcamalar([...harcamalar, { ...formData, harcama_id: Date.now() }]);
+        await addHarcama(formData);
       }
       setShowHarcamaModal(false);
       setEditingHarcama(null);
@@ -50,9 +46,14 @@ const BudgetManagement = ({ currentUser }) => {
     }
   };
 
-  const handleDeleteHarcama = (id) => {
+  const handleDeleteHarcama = async (id) => {
     if (window.confirm('Bu harcamayı silmek istediğinize emin misiniz?')) {
-      setHarcamalar(harcamalar.filter(h => h.harcama_id !== id));
+      try {
+        await deleteHarcama(id);
+      } catch (error) {
+        console.error('Harcama silinirken hata:', error);
+        alert('Harcama silinirken bir hata oluştu');
+      }
     }
   };
 
