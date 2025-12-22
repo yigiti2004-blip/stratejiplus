@@ -157,8 +157,9 @@ const clearLegacyLocalStorageForSupabase = () => {
       'units',
       'organizations',
       'monitoringHistory',
-      'budgetChapters',
-      'expenses',
+      // Keep budgetChapters and expenses for Budget Management local storage
+      // 'budgetChapters',
+      // 'expenses',
       'risks',
       'revisions',
     ];
