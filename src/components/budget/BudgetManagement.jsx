@@ -9,7 +9,7 @@ import FasilForm from './FasilForm';
 import BudgetReports from './BudgetReports';
 
 const BudgetManagement = ({ currentUser }) => {
-  const { fasiller, setFasiller } = useFasiller();
+  const { fasiller, addFasil, updateFasil, deleteFasil } = useFasiller();
   const { harcamalar, addHarcama, updateHarcama, deleteHarcama } = useHarcamalar();
   const { faaliyetler } = useFaaliyetler();
   const calculations = useBudgetCalculations(harcamalar, fasiller, faaliyetler);
@@ -68,38 +68,34 @@ const BudgetManagement = ({ currentUser }) => {
     setShowFasilModal(true);
   };
 
-  const handleSaveFasil = (formData) => {
+  const handleSaveFasil = async (formData) => {
     try {
       if (editingFasil) {
         // Düzenleme
-        const updatedFasiller = fasiller.map(f =>
-          f.fasil_id === editingFasil.fasil_id
-            ? {
-                ...f,
-                ...formData
-              }
-            : f
-        );
-        setFasiller(updatedFasiller);
+        await updateFasil(editingFasil.fasil_id, formData);
       } else {
-        // Yeni ekleme
-        const newFasil = {
-          ...formData,
-          fasil_id: Date.now()
-        };
-        setFasiller([...fasiller, newFasil]);
+        // Yeni ekleme - generate ID if not provided
+        if (!formData.fasil_id) {
+          formData.fasil_id = `fasil-${Date.now()}`;
+        }
+        await addFasil(formData);
       }
       setShowFasilModal(false);
       setEditingFasil(null);
     } catch (error) {
       console.error('Fasıl kaydedilirken hata:', error);
-      alert('Fasıl kaydedilirken bir hata oluştu');
+      alert('Fasıl kaydedilirken bir hata oluştu: ' + (error.message || 'Bilinmeyen hata'));
     }
   };
 
-  const handleDeleteFasil = (id) => {
+  const handleDeleteFasil = async (id) => {
     if (window.confirm('Bu fasılı silmek istediğinize emin misiniz?')) {
-      setFasiller(fasiller.filter(f => f.fasil_id !== id));
+      try {
+        await deleteFasil(id);
+      } catch (error) {
+        console.error('Fasıl silinirken hata:', error);
+        alert('Fasıl silinirken bir hata oluştu: ' + (error.message || 'Bilinmeyen hata'));
+      }
     }
   };
 

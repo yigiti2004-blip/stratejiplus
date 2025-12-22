@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthContext } from './useAuthContext';
-import { getCompanyData } from '@/lib/supabase';
+import { getCompanyData, insertCompanyData, updateCompanyData, deleteCompanyData } from '@/lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
 
 // Local default demo data (used only when Supabase is not configured)
 const DEFAULT_FASILLER = [
@@ -86,17 +87,104 @@ export const useFasiller = () => {
     loadFasiller();
   }, [loadFasiller]);
 
-  // Whenever fasiller changes (due to local edits), keep localStorage in sync for calculations
+  // --- CRUD helpers for fasiller tied to Supabase ---
+  const addFasil = async (formData) => {
+    const companyId = currentUser?.companyId;
+    const userId = currentUser?.id || currentUser?.userId;
+    if (!companyId || userId == null) {
+      console.error('Missing user/company for addFasil');
+      throw new Error('Missing user/company for addFasil');
+    }
+
+    const hasSupabase =
+      !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (hasSupabase) {
+      // Supabase: only store fields that exist in schema (id, code, name, company_id)
+      const payload = {
+        id: formData.fasil_id || `fasil-${uuidv4()}`,
+        code: formData.fasil_kodu,
+        name: formData.fasil_adi,
+      };
+
+      const { error } = await insertCompanyData('budget_chapters', payload, userId, companyId);
+      if (error) {
+        console.error('Error inserting into budget_chapters:', error);
+        throw error;
+      }
+      await loadFasiller();
+    } else {
+      // localStorage fallback
+      const newFasil = {
+        ...formData,
+        fasil_id: formData.fasil_id || Date.now(),
+      };
+      setFasiller((prev) => [...prev, newFasil]);
+    }
+  };
+
+  const updateFasil = async (id, formData) => {
+    const userId = currentUser?.id || currentUser?.userId;
+    if (userId == null) {
+      throw new Error('Missing user for updateFasil');
+    }
+
+    const hasSupabase =
+      !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (hasSupabase) {
+      // Supabase: only update fields that exist in schema
+      const updates = {
+        code: formData.fasil_kodu,
+        name: formData.fasil_adi,
+      };
+
+      const { error } = await updateCompanyData('budget_chapters', id, updates, userId);
+      if (error) {
+        console.error('Error updating budget_chapters:', error);
+        throw error;
+      }
+      await loadFasiller();
+    } else {
+      // localStorage fallback
+      setFasiller((prev) =>
+        prev.map((f) => (f.fasil_id === id ? { ...f, ...formData } : f))
+      );
+    }
+  };
+
+  const deleteFasil = async (id) => {
+    const userId = currentUser?.id || currentUser?.userId;
+    if (userId == null) {
+      throw new Error('Missing user for deleteFasil');
+    }
+
+    const hasSupabase =
+      !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (hasSupabase) {
+      const { error } = await deleteCompanyData('budget_chapters', id, userId);
+      if (error) {
+        console.error('Error deleting budget_chapters:', error);
+        throw error;
+      }
+      await loadFasiller();
+    } else {
+      // localStorage fallback
+      setFasiller((prev) => prev.filter((f) => f.fasil_id !== id));
+    }
+  };
+
+  // Keep local cache in sync
   useEffect(() => {
     try {
       if (fasiller && fasiller.length > 0) {
         localStorage.setItem('fasiller', JSON.stringify(fasiller));
-        window.dispatchEvent(new Event('storage'));
       }
     } catch (e) {
-      console.error('Failed to save fasiller to localStorage', e);
+      console.error('Failed to save fasiller to localStorage:', e);
     }
   }, [fasiller]);
 
-  return { fasiller, setFasiller };
+  return { fasiller, addFasil, updateFasil, deleteFasil };
 };
