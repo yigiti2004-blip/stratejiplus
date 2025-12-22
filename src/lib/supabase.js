@@ -144,11 +144,15 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
   delete snakeCaseData.actualBudget;
   delete snakeCaseData.targetValue;
   delete snakeCaseData.actualValue;
-    delete snakeCaseData.startDate;
-    delete snakeCaseData.endDate;
-    delete snakeCaseData.companyId;
-    delete snakeCaseData.projectName;
-    delete snakeCaseData.name; // Remove if it's for risk_projects (project_name is used instead)
+  delete snakeCaseData.startDate;
+  delete snakeCaseData.endDate;
+  delete snakeCaseData.companyId;
+  delete snakeCaseData.projectName;
+  // Only remove `name` when we're inserting into risk_projects,
+  // where `project_name` is the actual column used.
+  if (table === 'risk_projects') {
+    delete snakeCaseData.name;
+  }
   
   // Filter out fields that don't exist in the table schema
   const validFields = validColumns[table] || Object.keys(snakeCaseData);
