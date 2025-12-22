@@ -101,10 +101,14 @@ export const useFasiller = () => {
 
     if (hasSupabase) {
       // Supabase: only store fields that exist in schema (id, code, name, company_id)
+      // name is NOT NULL in schema, so we must always send a non-empty string
+      const safeName = (formData.fasil_adi || '').trim() || formData.fasil_kodu || 'Yeni Fasıl';
+      const safeCode = (formData.fasil_kodu || '').trim() || `F-${Date.now()}`;
+
       const payload = {
         id: formData.fasil_id || `fasil-${uuidv4()}`,
-        code: formData.fasil_kodu,
-        name: formData.fasil_adi,
+        code: safeCode,
+        name: safeName,
       };
 
       const { error } = await insertCompanyData('budget_chapters', payload, userId, companyId);
@@ -134,10 +138,17 @@ export const useFasiller = () => {
 
     if (hasSupabase) {
       // Supabase: only update fields that exist in schema
-      const updates = {
-        code: formData.fasil_kodu,
-        name: formData.fasil_adi,
-      };
+      const updates = {};
+
+      if (formData.fasil_kodu !== undefined) {
+        const safeCode = (formData.fasil_kodu || '').trim();
+        if (safeCode) updates.code = safeCode;
+      }
+
+      if (formData.fasil_adi !== undefined) {
+        const safeName = (formData.fasil_adi || '').trim();
+        if (safeName) updates.name = safeName;
+      }
 
       const { error } = await updateCompanyData('budget_chapters', id, updates, userId);
       if (error) {
