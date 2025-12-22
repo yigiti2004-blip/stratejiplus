@@ -18,7 +18,10 @@ export const useBudgetCalculations = (harcamalar, fasiller, faaliyetler) => {
 
     // 1. FASIL PERFORMANSI
     safeFasiller.forEach(fasil => {
-      const fasilHarcamalari = safeHarcamalar.filter(h => Number(h.fasil_id) === Number(fasil.fasil_id));
+      // Match by ID as string so both numeric and UUID style IDs work
+      const fasilHarcamalari = safeHarcamalar.filter(
+        (h) => h.fasil_id != null && fasil.fasil_id != null && String(h.fasil_id) === String(fasil.fasil_id)
+      );
       const toplamHarcama = fasilHarcamalari.reduce((sum, h) => sum + (Number(h.toplam_tutar) || 0), 0);
       const limit = Number(fasil.yillik_toplam_limit) || 0;
       const kullanimYuzdesi = limit > 0 ? (toplamHarcama / limit) * 100 : 0;
@@ -79,7 +82,9 @@ export const useBudgetCalculations = (harcamalar, fasiller, faaliyetler) => {
       };
 
       faaliyetHarcamalari.forEach(harcama => {
-        const fasil = safeFasiller.find(f => Number(f.fasil_id) === Number(harcama.fasil_id));
+        const fasil = safeFasiller.find(
+          (f) => f.fasil_id != null && harcama.fasil_id != null && String(f.fasil_id) === String(harcama.fasil_id)
+        );
         if (fasil) {
           if (!calculations.faaliyetGerceklesmesi[code].fasil_dagilimi[fasil.fasil_kodu]) {
             calculations.faaliyetGerceklesmesi[code].fasil_dagilimi[fasil.fasil_kodu] = {
@@ -103,7 +108,9 @@ export const useBudgetCalculations = (harcamalar, fasiller, faaliyetler) => {
 
     // 3. HARCAMA DAĞILIMI
     safeHarcamalar.forEach(harcama => {
-      const fasil = safeFasiller.find(f => Number(f.fasil_id) === Number(harcama.fasil_id));
+      const fasil = safeFasiller.find(
+        (f) => f.fasil_id != null && harcama.fasil_id != null && String(f.fasil_id) === String(harcama.fasil_id)
+      );
       const faaliyet = safeFaaliyetler.find(f => (f.code === harcama.faaliyet_kodu) || (f.faaliyet_kodu === harcama.faaliyet_kodu));
 
       if (fasil && faaliyet) {
