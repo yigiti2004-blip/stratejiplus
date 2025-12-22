@@ -85,7 +85,22 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
     risks: ['id', 'name', 'risk_type', 'description', 'probability', 'impact', 'score', 'status', 'responsible', 'related_record_type', 'related_record_id', 'company_id', 'created_at', 'updated_at'],
     risk_projects: ['id', 'risk_id', 'project_name', 'description', 'manager', 'start_date', 'end_date', 'status', 'company_id', 'created_at', 'updated_at'],
     expenses: ['id', 'budget_chapter_id', 'activity_id', 'description', 'amount', 'total_amount', 'expense_date', 'status', 'company_id', 'created_at', 'updated_at'],
-    budget_chapters: ['id', 'code', 'name', 'company_id', 'created_at', 'updated_at'],
+    // Extended budget_chapters schema to support Fasıl extra fields
+    budget_chapters: [
+      'id',
+      'code',
+      'name',
+      'description',
+      'yearly_total_limit',
+      'yearly_allocation_limit',
+      'fiscal_year',
+      'responsible_unit',
+      'responsible_person',
+      'status',
+      'company_id',
+      'created_at',
+      'updated_at',
+    ],
   };
 
   // Validate companyId exists

@@ -109,6 +109,15 @@ export const useFasiller = () => {
         id: formData.fasil_id || `fasil-${uuidv4()}`,
         code: safeCode,
         name: safeName,
+        // Extra fields map directly to extended budget_chapters columns
+        description: formData.fasil_aciklama || null,
+        yearly_total_limit: formData.yillik_toplam_limit != null ? Number(formData.yillik_toplam_limit) : null,
+        yearly_allocation_limit:
+          formData.yillik_tahsis_limit != null ? Number(formData.yillik_tahsis_limit) : null,
+        fiscal_year: formData.mali_yil != null ? Number(formData.mali_yil) : new Date().getFullYear(),
+        responsible_unit: formData.sorumlu_birim || null,
+        responsible_person: formData.sorumlu_kisi || null,
+        status: formData.durum || 'Aktif',
       };
 
       const { error } = await insertCompanyData('budget_chapters', payload, userId, companyId);
@@ -148,6 +157,37 @@ export const useFasiller = () => {
       if (formData.fasil_adi !== undefined) {
         const safeName = (formData.fasil_adi || '').trim();
         if (safeName) updates.name = safeName;
+      }
+
+      if (formData.fasil_aciklama !== undefined) {
+        updates.description = formData.fasil_aciklama || null;
+      }
+
+      if (formData.yillik_toplam_limit !== undefined) {
+        updates.yearly_total_limit =
+          formData.yillik_toplam_limit != null ? Number(formData.yillik_toplam_limit) : null;
+      }
+
+      if (formData.yillik_tahsis_limit !== undefined) {
+        updates.yearly_allocation_limit =
+          formData.yillik_tahsis_limit != null ? Number(formData.yillik_tahsis_limit) : null;
+      }
+
+      if (formData.mali_yil !== undefined) {
+        updates.fiscal_year =
+          formData.mali_yil != null ? Number(formData.mali_yil) : new Date().getFullYear();
+      }
+
+      if (formData.sorumlu_birim !== undefined) {
+        updates.responsible_unit = formData.sorumlu_birim || null;
+      }
+
+      if (formData.sorumlu_kisi !== undefined) {
+        updates.responsible_person = formData.sorumlu_kisi || null;
+      }
+
+      if (formData.durum !== undefined) {
+        updates.status = formData.durum || 'Aktif';
       }
 
       const { error } = await updateCompanyData('budget_chapters', id, updates, userId);
