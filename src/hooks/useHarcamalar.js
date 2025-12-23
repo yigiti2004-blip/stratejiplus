@@ -30,12 +30,14 @@ export const useHarcamalar = () => {
         // Map Supabase fields to frontend format
         const mapped = (expensesRaw || []).map((item) => {
           const faaliyet_kodu = activityMap[item.activity_id] || item.activity_id || '';
+          // Ensure budget_chapter_id is converted to string for consistent matching
+          const fasilId = item.budget_chapter_id ? String(item.budget_chapter_id).trim() : '';
           
           return {
             ...item,
             harcama_id: item.id,
             faaliyet_kodu,
-            fasil_id: item.budget_chapter_id || '',
+            fasil_id: fasilId,
             harcama_adi: item.description || '',
             harcama_tarihi: item.expense_date || '',
             tutar_kdv_hariç: item.amount || 0,
@@ -48,6 +50,8 @@ export const useHarcamalar = () => {
             aciklama: item.description || '',
           };
         });
+
+        console.log('📥 Loaded expenses:', mapped.length, 'items with fasil_ids:', mapped.map(h => ({ id: h.harcama_id, fasil_id: h.fasil_id })));
 
         setHarcamalar(mapped);
         
@@ -110,16 +114,21 @@ export const useHarcamalar = () => {
       }
 
       // Map frontend fields to Supabase schema
+      // Ensure fasil_id is converted to string to match Supabase ID format
+      const budgetChapterId = formData.fasil_id ? String(formData.fasil_id).trim() : null;
+      
       const payload = {
         id: formData.harcama_id || `exp-${uuidv4()}`,
         activity_id: activity.id,
-        budget_chapter_id: formData.fasil_id || null,
+        budget_chapter_id: budgetChapterId || null,
         description: formData.harcama_adi || formData.aciklama || '',
         amount: Number(formData.tutar_kdv_hariç) || 0,
         total_amount: Number(formData.toplam_tutar) || 0,
         expense_date: formData.harcama_tarihi || null,
         status: formData.durum || 'Beklemede',
       };
+
+      console.log('💾 Saving expense:', { budget_chapter_id: budgetChapterId, formData_fasil_id: formData.fasil_id });
 
       const { error } = await insertCompanyData('expenses', payload, userId, companyId);
       if (error) {

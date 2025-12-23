@@ -24,6 +24,11 @@ export const useBudgetCalculations = (harcamalar, fasiller, faaliyetler) => {
         id: f.fasil_id,
         kod: f.fasil_kodu,
         limit: f.yillik_toplam_limit
+      })),
+      harcamalar: safeHarcamalar.map(h => ({
+        id: h.harcama_id,
+        fasil_id: h.fasil_id,
+        tutar: h.toplam_tutar
       }))
     });
 
@@ -34,9 +39,14 @@ export const useBudgetCalculations = (harcamalar, fasiller, faaliyetler) => {
       }
 
       // Match by ID as string so both numeric and UUID style IDs work
-      const fasilHarcamalari = safeHarcamalar.filter(
-        (h) => h.fasil_id != null && fasil.fasil_id != null && String(h.fasil_id) === String(fasil.fasil_id)
-      );
+      // Also handle empty string and null values
+      const fasilIdStr = String(fasil.fasil_id || '').trim();
+      const fasilHarcamalari = safeHarcamalar.filter((h) => {
+        if (!h || h.fasil_id == null) return false;
+        const harcamaFasilIdStr = String(h.fasil_id).trim();
+        return harcamaFasilIdStr && fasilIdStr && harcamaFasilIdStr === fasilIdStr;
+      });
+      
       const toplamHarcama = fasilHarcamalari.reduce((sum, h) => sum + (Number(h.toplam_tutar) || 0), 0);
       
       // Handle null/undefined values properly - convert to 0
@@ -48,6 +58,8 @@ export const useBudgetCalculations = (harcamalar, fasiller, faaliyetler) => {
       let durum = 'Yeşil';
       if (kullanimYuzdesi > 100) durum = 'Kırmızı';
       else if (kullanimYuzdesi > 80) durum = 'Sarı';
+
+      console.log(`📊 Fasıl ${fasil.fasil_kodu}: limit=${limit}, harcama=${toplamHarcama}, yuzde=${kullanimYuzdesi.toFixed(1)}%, durum=${durum}, matched_harcamalar=${fasilHarcamalari.length}`);
 
       // Always add to fasilPerformans, even if limit is 0
       calculations.fasilPerformans[fasil.fasil_id] = {
@@ -72,7 +84,7 @@ export const useBudgetCalculations = (harcamalar, fasiller, faaliyetler) => {
       }
     });
 
-    console.log('✅ Fasıl Performansı calculated:', Object.keys(calculations.fasilPerformans).length, 'entries');
+    console.log('✅ Fasıl Performansı calculated:', Object.keys(calculations.fasilPerformans).length, 'entries', Object.values(calculations.fasilPerformans));
 
     // 2. FAALIYET BÜTÇE GERÇEKLEŞMESİ
     safeFaaliyetler.forEach(faaliyet => {
