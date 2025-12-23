@@ -17,13 +17,31 @@ export const useBudgetCalculations = (harcamalar, fasiller, faaliyetler) => {
     };
 
     // 1. FASIL PERFORMANSI
+    console.log('🔍 Budget Calculations Debug:', {
+      fasillerCount: safeFasiller.length,
+      harcamalarCount: safeHarcamalar.length,
+      fasiller: safeFasiller.map(f => ({
+        id: f.fasil_id,
+        kod: f.fasil_kodu,
+        limit: f.yillik_toplam_limit
+      }))
+    });
+
     safeFasiller.forEach(fasil => {
+      if (!fasil || !fasil.fasil_id) {
+        console.warn('Skipping invalid fasil:', fasil);
+        return;
+      }
+
       // Match by ID as string so both numeric and UUID style IDs work
       const fasilHarcamalari = safeHarcamalar.filter(
         (h) => h.fasil_id != null && fasil.fasil_id != null && String(h.fasil_id) === String(fasil.fasil_id)
       );
       const toplamHarcama = fasilHarcamalari.reduce((sum, h) => sum + (Number(h.toplam_tutar) || 0), 0);
-      const limit = Number(fasil.yillik_toplam_limit) || 0;
+      
+      // Handle null/undefined values properly - convert to 0
+      const limitValue = fasil.yillik_toplam_limit ?? fasil.yearly_total_limit ?? null;
+      const limit = limitValue != null ? Number(limitValue) : 0;
       const kullanimYuzdesi = limit > 0 ? (toplamHarcama / limit) * 100 : 0;
       const kalanButce = limit - toplamHarcama;
 
@@ -31,10 +49,11 @@ export const useBudgetCalculations = (harcamalar, fasiller, faaliyetler) => {
       if (kullanimYuzdesi > 100) durum = 'Kırmızı';
       else if (kullanimYuzdesi > 80) durum = 'Sarı';
 
+      // Always add to fasilPerformans, even if limit is 0
       calculations.fasilPerformans[fasil.fasil_id] = {
         fasil_id: fasil.fasil_id,
-        fasil_kodu: fasil.fasil_kodu,
-        fasil_adi: fasil.fasil_adi,
+        fasil_kodu: fasil.fasil_kodu || 'N/A',
+        fasil_adi: fasil.fasil_adi || 'N/A',
         fasil_limiti: limit,
         toplam_harcama: toplamHarcama,
         kalan_butce: kalanButce,
@@ -52,6 +71,8 @@ export const useBudgetCalculations = (harcamalar, fasiller, faaliyetler) => {
         });
       }
     });
+
+    console.log('✅ Fasıl Performansı calculated:', Object.keys(calculations.fasilPerformans).length, 'entries');
 
     // 2. FAALIYET BÜTÇE GERÇEKLEŞMESİ
     safeFaaliyetler.forEach(faaliyet => {

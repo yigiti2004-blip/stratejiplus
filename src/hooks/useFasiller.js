@@ -36,22 +36,27 @@ export const useFasiller = () => {
         const chaptersRaw = await getCompanyData('budget_chapters', userId, companyId, isAdmin);
 
         const mapped =
-          (chaptersRaw || []).map((item) => ({
-            ...item,
-            fasil_id: item.id ?? item.fasil_id,
-            fasil_kodu: item.code ?? item.fasil_kodu,
-            fasil_adi: item.name ?? item.fasil_adi,
-            // Optional fields if they exist in schema
-            fasil_aciklama: item.description ?? item.fasil_aciklama ?? '',
-            yillik_toplam_limit:
-              item.yearly_total_limit ?? item.yillik_toplam_limit ?? item.limit ?? 0,
-            yillik_tahsis_limit:
-              item.yearly_allocation_limit ?? item.yillik_tahsis_limit ?? null,
-            mali_yil: item.fiscal_year ?? item.mali_yil ?? new Date().getFullYear(),
-            sorumlu_birim: item.responsible_unit ?? item.sorumlu_birim ?? '',
-            sorumlu_kisi: item.responsible_person ?? item.sorumlu_kisi ?? '',
-            durum: item.status ?? item.durum ?? 'Aktif',
-          })) || [];
+          (chaptersRaw || []).map((item) => {
+            // Handle null/undefined values properly for numeric fields
+            const yearlyTotalLimit = item.yearly_total_limit ?? item.yillik_toplam_limit ?? item.limit;
+            const yillikToplamLimit = yearlyTotalLimit != null ? Number(yearlyTotalLimit) : 0;
+
+            return {
+              ...item,
+              fasil_id: item.id ?? item.fasil_id,
+              fasil_kodu: item.code ?? item.fasil_kodu,
+              fasil_adi: item.name ?? item.fasil_adi,
+              // Optional fields if they exist in schema
+              fasil_aciklama: item.description ?? item.fasil_aciklama ?? '',
+              yillik_toplam_limit: yillikToplamLimit,
+              yillik_tahsis_limit:
+                item.yearly_allocation_limit != null ? Number(item.yearly_allocation_limit) : (item.yillik_tahsis_limit != null ? Number(item.yillik_tahsis_limit) : null),
+              mali_yil: item.fiscal_year ?? item.mali_yil ?? new Date().getFullYear(),
+              sorumlu_birim: item.responsible_unit ?? item.sorumlu_birim ?? '',
+              sorumlu_kisi: item.responsible_person ?? item.sorumlu_kisi ?? '',
+              durum: item.status ?? item.durum ?? 'Aktif',
+            };
+          }) || [];
 
         setFasiller(mapped);
         // Mirror to localStorage just for client-side caching
