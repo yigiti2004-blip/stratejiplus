@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useFasiller } from '../../hooks/useFasiller';
 import { useHarcamalar } from '../../hooks/useHarcamalar';
@@ -14,15 +14,6 @@ const BudgetManagement = ({ currentUser }) => {
   const { faaliyetler } = useFaaliyetler();
   const calculations = useBudgetCalculations(harcamalar, fasiller, faaliyetler);
 
-  // Debug logging - always visible
-  useEffect(() => {
-    console.log('=== BUDGET MANAGEMENT DEBUG ===');
-    console.log('Fasiller:', fasiller?.length || 0, fasiller);
-    console.log('Harcamalar:', harcamalar?.length || 0, harcamalar);
-    console.log('Faaliyetler:', faaliyetler?.length || 0, faaliyetler);
-    console.log('Calculations fasilPerformans:', Object.keys(calculations?.fasilPerformans || {}).length, calculations?.fasilPerformans);
-    console.log('===============================');
-  }, [fasiller, harcamalar, faaliyetler, calculations]);
 
   const [activeTab, setActiveTab] = useState('harcamalar');
   const [showHarcamaModal, setShowHarcamaModal] = useState(false);
@@ -143,19 +134,12 @@ const BudgetManagement = ({ currentUser }) => {
             </button>
           </div>
 
-          {/* Debug Info */}
-          <div style={{ padding: '10px', background: '#f3f4f6', marginBottom: '10px', borderRadius: '4px', fontSize: '12px' }}>
-            <strong>Debug:</strong> Fasıllar: {fasiller?.length || 0} | Harcamalar: {harcamalar?.length || 0} | 
-            Performans Entries: {Object.keys(calculations?.fasilPerformans || {}).length}
-          </div>
-
           {Object.keys(calculations?.fasilPerformans || {}).length > 0 ? (
             <div className="fasil-performans">
               <h3>Fasıl Performansı</h3>
               <div className="fasil-grid">
                 {Object.values(calculations.fasilPerformans).map(fasil => {
                   const durumLower = (fasil.durum || 'Yeşil').toLowerCase();
-                  console.log('Rendering fasil:', fasil.fasil_kodu, 'durum:', durumLower, 'full fasil:', fasil);
                   return (
                     <div key={fasil.fasil_id || fasil.fasil_kodu} className={`fasil-card fasil-${durumLower}`}>
                       <div className="fasil-header">
