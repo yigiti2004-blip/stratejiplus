@@ -78,7 +78,8 @@ const HarcamaForm = ({ editingItem, faaliyetler = [], fasiller = [], onSave, onC
 
     const formData = {
       faaliyet_kodu,
-      fasil_id: Number(fasil_id),
+      // Keep fasil_id as string to match Supabase ID format (not Number!)
+      fasil_id: String(fasil_id).trim(),
       harcama_adi,
       harcama_tarihi,
       tutar_kdv_hariç: Number(tutar_kdv_hariç),
@@ -90,11 +91,25 @@ const HarcamaForm = ({ editingItem, faaliyetler = [], fasiller = [], onSave, onC
       durum
     };
 
+    console.log('📝 HarcamaForm submitting:', { fasil_id: formData.fasil_id, fasil_id_type: typeof formData.fasil_id });
+
     onSave(formData);
   };
 
   // Aktif fasılları filtrele (Bütçe Yönetimi'nden)
   const aktivFasiller = validFasiller.filter(f => f && f.durum === 'Aktif');
+
+  // Debug: Log available Fasıl IDs
+  useEffect(() => {
+    if (aktivFasiller.length > 0) {
+      console.log('📋 Available Fasıllar in form:', aktivFasiller.map(f => ({
+        fasil_id: f.fasil_id,
+        fasil_id_type: typeof f.fasil_id,
+        fasil_kodu: f.fasil_kodu,
+        fasil_adi: f.fasil_adi
+      })));
+    }
+  }, [aktivFasiller]);
 
   return (
   <motion.form

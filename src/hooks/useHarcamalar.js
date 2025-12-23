@@ -51,7 +51,13 @@ export const useHarcamalar = () => {
           };
         });
 
-        console.log('📥 Loaded expenses:', mapped.length, 'items with fasil_ids:', mapped.map(h => ({ id: h.harcama_id, fasil_id: h.fasil_id })));
+        console.log('📥 Loaded expenses from Supabase:', mapped.length, 'items');
+        console.log('📥 Expense fasil_ids:', mapped.map(h => ({ 
+          harcama_id: h.harcama_id, 
+          fasil_id: h.fasil_id, 
+          fasil_id_type: typeof h.fasil_id,
+          budget_chapter_id_from_db: expensesRaw.find(e => e.id === h.harcama_id)?.budget_chapter_id
+        })));
 
         setHarcamalar(mapped);
         
@@ -114,7 +120,7 @@ export const useHarcamalar = () => {
       }
 
       // Map frontend fields to Supabase schema
-      // Ensure fasil_id is converted to string to match Supabase ID format
+      // fasil_id should already be a string from the form, but ensure it's trimmed
       const budgetChapterId = formData.fasil_id ? String(formData.fasil_id).trim() : null;
       
       const payload = {
@@ -128,7 +134,12 @@ export const useHarcamalar = () => {
         status: formData.durum || 'Beklemede',
       };
 
-      console.log('💾 Saving expense:', { budget_chapter_id: budgetChapterId, formData_fasil_id: formData.fasil_id });
+      console.log('💾 Saving expense to Supabase:', { 
+        budget_chapter_id: budgetChapterId, 
+        formData_fasil_id: formData.fasil_id,
+        formData_fasil_id_type: typeof formData.fasil_id,
+        payload_budget_chapter_id: payload.budget_chapter_id
+      });
 
       const { error } = await insertCompanyData('expenses', payload, userId, companyId);
       if (error) {
