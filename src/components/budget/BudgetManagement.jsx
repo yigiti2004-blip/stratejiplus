@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useFasiller } from '../../hooks/useFasiller';
 import { useHarcamalar } from '../../hooks/useHarcamalar';
@@ -13,6 +13,16 @@ const BudgetManagement = ({ currentUser }) => {
   const { harcamalar, addHarcama, updateHarcama, deleteHarcama } = useHarcamalar();
   const { faaliyetler } = useFaaliyetler();
   const calculations = useBudgetCalculations(harcamalar, fasiller, faaliyetler);
+
+  // Debug logging - always visible
+  useEffect(() => {
+    console.log('=== BUDGET MANAGEMENT DEBUG ===');
+    console.log('Fasiller:', fasiller?.length || 0, fasiller);
+    console.log('Harcamalar:', harcamalar?.length || 0, harcamalar);
+    console.log('Faaliyetler:', faaliyetler?.length || 0, faaliyetler);
+    console.log('Calculations fasilPerformans:', Object.keys(calculations?.fasilPerformans || {}).length, calculations?.fasilPerformans);
+    console.log('===============================');
+  }, [fasiller, harcamalar, faaliyetler, calculations]);
 
   const [activeTab, setActiveTab] = useState('harcamalar');
   const [showHarcamaModal, setShowHarcamaModal] = useState(false);
@@ -133,40 +143,69 @@ const BudgetManagement = ({ currentUser }) => {
             </button>
           </div>
 
-          {Object.keys(calculations.fasilPerformans).length > 0 && (
+          {/* Debug Info */}
+          <div style={{ padding: '10px', background: '#f3f4f6', marginBottom: '10px', borderRadius: '4px', fontSize: '12px' }}>
+            <strong>Debug:</strong> Fasıllar: {fasiller?.length || 0} | Harcamalar: {harcamalar?.length || 0} | 
+            Performans Entries: {Object.keys(calculations?.fasilPerformans || {}).length}
+          </div>
+
+          {Object.keys(calculations?.fasilPerformans || {}).length > 0 ? (
             <div className="fasil-performans">
               <h3>Fasıl Performansı</h3>
               <div className="fasil-grid">
-                {Object.values(calculations.fasilPerformans).map(fasil => (
-                  <div key={fasil.fasil_kodu} className={`fasil-card fasil-${fasil.durum.toLowerCase()}`}>
-                    <div className="fasil-header">
-                      <div>
-                        <h4>{fasil.fasil_kodu}</h4>
-                        <p>{fasil.fasil_adi}</p>
+                {Object.values(calculations.fasilPerformans).map(fasil => {
+                  const durumLower = (fasil.durum || 'Yeşil').toLowerCase();
+                  console.log('Rendering fasil:', fasil.fasil_kodu, 'durum:', durumLower, 'full fasil:', fasil);
+                  return (
+                    <div key={fasil.fasil_id || fasil.fasil_kodu} className={`fasil-card fasil-${durumLower}`}>
+                      <div className="fasil-header">
+                        <div>
+                          <h4>{fasil.fasil_kodu || 'N/A'}</h4>
+                          <p>{fasil.fasil_adi || 'N/A'}</p>
+                        </div>
+                        <span className={`badge badge-${durumLower}`} style={{ 
+                          display: 'inline-block',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          backgroundColor: durumLower === 'kırmızı' ? '#fee2e2' : durumLower === 'sarı' ? '#fef3c7' : '#d1fae5',
+                          color: durumLower === 'kırmızı' ? '#991b1b' : durumLower === 'sarı' ? '#92400e' : '#065f46'
+                        }}>
+                          {fasil.durum || 'Yeşil'}
+                        </span>
                       </div>
-                      <span className={`badge badge-${fasil.durum.toLowerCase()}`}>{fasil.durum}</span>
+                      <div className="fasil-stats">
+                        <div className="stat">
+                          <span>Limit:</span>
+                          <span>{(fasil.fasil_limiti || 0).toLocaleString('tr-TR')} ₺</span>
+                        </div>
+                        <div className="stat">
+                          <span>Harcama:</span>
+                          <span>{(fasil.toplam_harcama || 0).toLocaleString('tr-TR')} ₺</span>
+                        </div>
+                        <div className="stat">
+                          <span>Kalan:</span>
+                          <span>{(fasil.kalan_butce || 0).toLocaleString('tr-TR')} ₺</span>
+                        </div>
+                      </div>
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${Math.min(fasil.kullanim_yuzdesi || 0, 100)}%` }} />
+                      </div>
+                      <div className="progress-label">{(fasil.kullanim_yuzdesi || 0).toFixed(1)}%</div>
                     </div>
-                    <div className="fasil-stats">
-                      <div className="stat">
-                        <span>Limit:</span>
-                        <span>{fasil.fasil_limiti.toLocaleString('tr-TR')} ₺</span>
-                      </div>
-                      <div className="stat">
-                        <span>Harcama:</span>
-                        <span>{fasil.toplam_harcama.toLocaleString('tr-TR')} ₺</span>
-                      </div>
-                      <div className="stat">
-                        <span>Kalan:</span>
-                        <span>{fasil.kalan_butce.toLocaleString('tr-TR')} ₺</span>
-                      </div>
-                    </div>
-                    <div className="progress-bar">
-                      <div className="progress-fill" style={{ width: `${Math.min(fasil.kullanim_yuzdesi, 100)}%` }} />
-                    </div>
-                    <div className="progress-label">{fasil.kullanim_yuzdesi.toFixed(1)}%</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
+            </div>
+          ) : (
+            <div style={{ padding: '20px', textAlign: 'center', background: '#fef2f2', borderRadius: '8px', border: '1px solid #fee2e2' }}>
+              <p style={{ color: '#991b1b', fontWeight: 'bold' }}>⚠️ Fasıl Performansı verisi bulunamadı</p>
+              <p style={{ color: '#991b1b', fontSize: '14px', marginTop: '10px' }}>
+                Fasıllar: {fasiller?.length || 0} | Harcamalar: {harcamalar?.length || 0}
+                {fasiller?.length === 0 && <span style={{ display: 'block', marginTop: '5px' }}>→ Önce bir Fasıl oluşturun</span>}
+                {harcamalar?.length === 0 && <span style={{ display: 'block', marginTop: '5px' }}>→ Önce bir Harcama oluşturun</span>}
+              </p>
             </div>
           )}
 
