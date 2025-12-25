@@ -30,10 +30,10 @@ const RevisionModule = ({ currentUser }) => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <RefreshCcw className="text-purple-600 w-8 h-8"/> Revizyon Yönetim Modülü
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <RefreshCcw className="text-purple-400 w-8 h-8"/> Revizyon Yönetim Modülü
           </h1>
-          <p className="text-sm text-gray-600">Stratejik plan değişiklik, iptal ve güncellemelerinin yönetimi.</p>
+          <p className="text-sm text-gray-300">Stratejik plan değişiklik, iptal ve güncellemelerinin yönetimi.</p>
         </div>
         <button 
            onClick={() => handleStartWizard()} 
