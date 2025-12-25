@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, ArrowLeft, Check, AlertTriangle, FileText, Layout, 
@@ -15,30 +15,66 @@ import { REVISION_TYPES } from '@/data/revisionTypes';
 import { REVISION_REASONS } from '@/data/revisionReasons';
 import { useRevisionData } from '@/hooks/useRevisionData';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuthContext } from '@/hooks/useAuthContext';
+import { getCompanyData } from '@/lib/supabase';
 
-// Data fetching helper
-const fetchItemsByLevel = (level) => {
+// Data fetching helper - now uses Supabase
+const fetchItemsByLevel = async (level, userId, companyId, isAdmin) => {
   try {
-    const map = { 
-        'Alan': 'strategicAreas', 
-        'Amaç': 'strategicObjectives', 
+    const tableMap = { 
+        'Alan': 'strategic_areas', 
+        'Amaç': 'strategic_objectives', 
         'Hedef': 'targets', 
         'Gösterge': 'indicators', 
         'Faaliyet': 'activities'
     };
-    const key = map[level];
-    if (!key) return [];
+    const table = tableMap[level];
+    if (!table) return [];
     
-    const data = JSON.parse(localStorage.getItem(key) || '[]');
+    // Check if Supabase is configured
+    const hasSupabase = !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
     
-    // Normalize data for table display
-    return data.map(item => ({
-       id: item.id,
-       code: item.code,
-       name: item.name,
-       // Generic
-       ...item
-    }));
+    if (hasSupabase && userId && companyId) {
+      // Load from Supabase
+      const data = await getCompanyData(table, userId, companyId, isAdmin);
+      
+      // Normalize data for table display
+      return (data || []).map(item => ({
+         id: item.id,
+         code: item.code,
+         name: item.name,
+         // Map snake_case to camelCase for compatibility
+         companyId: item.company_id || item.companyId,
+         strategicAreaId: item.strategic_area_id || item.strategicAreaId,
+         objectiveId: item.objective_id || item.objectiveId,
+         targetId: item.target_id || item.targetId,
+         indicatorId: item.indicator_id || item.indicatorId,
+         responsibleUnit: item.responsible_unit || item.responsibleUnit,
+         // Include all other fields
+         ...item
+      }));
+    } else {
+      // Fallback to localStorage
+      const localStorageMap = { 
+          'Alan': 'strategicAreas', 
+          'Amaç': 'strategicObjectives', 
+          'Hedef': 'targets', 
+          'Gösterge': 'indicators', 
+          'Faaliyet': 'activities'
+      };
+      const key = localStorageMap[level];
+      if (!key) return [];
+      
+      const data = JSON.parse(localStorage.getItem(key) || '[]');
+      
+      // Normalize data for table display
+      return (data || []).map(item => ({
+         id: item.id,
+         code: item.code,
+         name: item.name,
+         ...item
+      }));
+    }
   } catch (e) {
     console.error("Error fetching items for level " + level, e);
     return [];
@@ -52,10 +88,12 @@ const ITEM_LEVELS = [
 const RevisionWizard = ({ initialItem, onClose, onSuccess }) => {
   const { saveRevision } = useRevisionData();
   const { toast } = useToast();
+  const { currentUser } = useAuthContext();
   const [step, setStep] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [availableItems, setAvailableItems] = useState([]);
   const [selectedLevel, setSelectedLevel] = useState('Alan');
+  const [loadingItems, setLoadingItems] = useState(false);
 
   const [formData, setFormData] = useState({
     itemLevel: '',
@@ -79,6 +117,25 @@ const RevisionWizard = ({ initialItem, onClose, onSuccess }) => {
     status: 'review'
   });
 
+  // Load items for a specific level from Supabase
+  const loadItemsForLevel = useCallback(async (level) => {
+    setLoadingItems(true);
+    try {
+      const companyId = currentUser?.companyId;
+      const userId = currentUser?.id || currentUser?.userId;
+      const isAdmin = currentUser?.roleId === 'admin';
+      
+      const items = await fetchItemsByLevel(level, userId, companyId, isAdmin);
+      setAvailableItems(items);
+      setSearchTerm('');
+    } catch (error) {
+      console.error('Error loading items for level:', level, error);
+      setAvailableItems([]);
+    } finally {
+      setLoadingItems(false);
+    }
+  }, [currentUser?.companyId, currentUser?.id, currentUser?.userId, currentUser?.roleId]);
+
   // Initialization Logic
   useEffect(() => {
     if (initialItem) {
@@ -101,19 +158,16 @@ const RevisionWizard = ({ initialItem, onClose, onSuccess }) => {
       }
     } else {
         // If no initial item, load defaults for selection
-        const items = fetchItemsByLevel('Alan');
-        setAvailableItems(items);
+        loadItemsForLevel('Alan');
     }
-  }, [initialItem]);
+  }, [initialItem, loadItemsForLevel]);
 
   // Handle Level Change in Step 1
   useEffect(() => {
     if (!initialItem || step === 1) { // Only auto-fetch if we are in selection mode
-       const items = fetchItemsByLevel(selectedLevel);
-       setAvailableItems(items);
-       setSearchTerm('');
+       loadItemsForLevel(selectedLevel);
     }
-  }, [selectedLevel]);
+  }, [selectedLevel, step, initialItem, loadItemsForLevel]);
 
   const filteredItems = useMemo(() => {
      if (!searchTerm) return availableItems;
@@ -277,7 +331,9 @@ const RevisionWizard = ({ initialItem, onClose, onSuccess }) => {
                        </TableRow>
                    </TableHeader>
                    <TableBody>
-                       {filteredItems.length === 0 ? (
+                       {loadingItems ? (
+                           <TableRow><TableCell colSpan={3} className="text-center py-8 text-gray-400">Yükleniyor...</TableCell></TableRow>
+                       ) : filteredItems.length === 0 ? (
                            <TableRow><TableCell colSpan={3} className="text-center py-8 text-gray-400">Kayıt bulunamadı.</TableCell></TableRow>
                        ) : (
                            filteredItems.map(item => (
