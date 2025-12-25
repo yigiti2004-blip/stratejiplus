@@ -307,9 +307,9 @@ const RevisionWizard = ({ initialItem, onClose, onSuccess }) => {
                <Table>
                    <TableHeader className="bg-gray-50">
                        <TableRow>
-                           <TableHead className="w-[120px]">Kod</TableHead>
-                           <TableHead>Ad / Tanım</TableHead>
-                           <TableHead className="w-[100px] text-right">Seç</TableHead>
+                           <TableHead className="w-[120px] text-gray-900 font-semibold">Kod</TableHead>
+                           <TableHead className="text-gray-900 font-semibold">Ad / Tanım</TableHead>
+                           <TableHead className="w-[100px] text-right text-gray-900 font-semibold">Seç</TableHead>
                        </TableRow>
                    </TableHeader>
                    <TableBody>
