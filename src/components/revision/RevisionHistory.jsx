@@ -87,7 +87,7 @@ const RevisionHistory = ({ itemId, onSelectItem }) => {
   if (!selectedItem) {
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2"><Search className="w-5 h-5"/> Öğe Seçimi</h3>
+        <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-900"><Search className="w-5 h-5 text-gray-900"/> Öğe Seçimi</h3>
         
         <div className="flex gap-4 items-center bg-gray-50 p-4 rounded-lg border border-gray-100">
           <div className="w-1/3">
