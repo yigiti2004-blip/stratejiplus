@@ -18,7 +18,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { getCompanyData } from '@/lib/supabase';
 
-// Data fetching helper - now uses Supabase
+// Data fetching helper - Supabase only, no localStorage fallback
 const fetchItemsByLevel = async (level, userId, companyId, isAdmin) => {
   try {
     const tableMap = { 
@@ -31,50 +31,32 @@ const fetchItemsByLevel = async (level, userId, companyId, isAdmin) => {
     const table = tableMap[level];
     if (!table) return [];
     
-    // Check if Supabase is configured
+    // Require Supabase configuration
     const hasSupabase = !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
     
-    if (hasSupabase && userId && companyId) {
-      // Load from Supabase
-      const data = await getCompanyData(table, userId, companyId, isAdmin);
-      
-      // Normalize data for table display
-      return (data || []).map(item => ({
-         id: item.id,
-         code: item.code,
-         name: item.name,
-         // Map snake_case to camelCase for compatibility
-         companyId: item.company_id || item.companyId,
-         strategicAreaId: item.strategic_area_id || item.strategicAreaId,
-         objectiveId: item.objective_id || item.objectiveId,
-         targetId: item.target_id || item.targetId,
-         indicatorId: item.indicator_id || item.indicatorId,
-         responsibleUnit: item.responsible_unit || item.responsibleUnit,
-         // Include all other fields
-         ...item
-      }));
-    } else {
-      // Fallback to localStorage
-      const localStorageMap = { 
-          'Alan': 'strategicAreas', 
-          'Amaç': 'strategicObjectives', 
-          'Hedef': 'targets', 
-          'Gösterge': 'indicators', 
-          'Faaliyet': 'activities'
-      };
-      const key = localStorageMap[level];
-      if (!key) return [];
-      
-      const data = JSON.parse(localStorage.getItem(key) || '[]');
-      
-      // Normalize data for table display
-      return (data || []).map(item => ({
-         id: item.id,
-         code: item.code,
-         name: item.name,
-         ...item
-      }));
+    if (!hasSupabase || !userId || !companyId) {
+      console.warn('Supabase not configured or missing user/company info');
+      return [];
     }
+    
+    // Load from Supabase only
+    const data = await getCompanyData(table, userId, companyId, isAdmin);
+    
+    // Normalize data for table display
+    return (data || []).map(item => ({
+       id: item.id,
+       code: item.code,
+       name: item.name,
+       // Map snake_case to camelCase for compatibility
+       companyId: item.company_id || item.companyId,
+       strategicAreaId: item.strategic_area_id || item.strategicAreaId,
+       objectiveId: item.objective_id || item.objectiveId,
+       targetId: item.target_id || item.targetId,
+       indicatorId: item.indicator_id || item.indicatorId,
+       responsibleUnit: item.responsible_unit || item.responsibleUnit,
+       // Include all other fields
+       ...item
+    }));
   } catch (e) {
     console.error("Error fetching items for level " + level, e);
     return [];
