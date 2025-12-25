@@ -284,21 +284,21 @@ const RevisionWizard = ({ initialItem, onClose, onSuccess }) => {
            
            <div className="flex gap-4 items-center bg-gray-50 p-4 rounded-lg border border-gray-100">
                <div className="w-1/3">
-                   <Label className="mb-1.5 block">Öğe Seviyesi</Label>
+                   <Label className="mb-1.5 block text-gray-900">Öğe Seviyesi</Label>
                    <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                       <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
-                       <SelectContent>
-                           {ITEM_LEVELS.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                       <SelectTrigger className="bg-white text-gray-900 border-gray-300"><SelectValue /></SelectTrigger>
+                       <SelectContent className="bg-white">
+                           {ITEM_LEVELS.map(l => <SelectItem key={l} value={l} className="text-gray-900 focus:bg-gray-100">{l}</SelectItem>)}
                        </SelectContent>
                    </Select>
                </div>
                <div className="w-2/3">
-                   <Label className="mb-1.5 block">Ara (Kod veya Ad)</Label>
+                   <Label className="mb-1.5 block text-gray-900">Ara (Kod veya Ad)</Label>
                    <Input 
                         placeholder="Aramak için yazınız..." 
                         value={searchTerm} 
                         onChange={(e) => setSearchTerm(e.target.value)} 
-                        className="bg-white"
+                        className="bg-white text-gray-900 border-gray-300"
                    />
                </div>
            </div>
@@ -319,11 +319,11 @@ const RevisionWizard = ({ initialItem, onClose, onSuccess }) => {
                            <TableRow><TableCell colSpan={3} className="text-center py-8 text-gray-400">Kayıt bulunamadı.</TableCell></TableRow>
                        ) : (
                            filteredItems.map(item => (
-                               <TableRow key={item.id} className="hover:bg-blue-50/50 cursor-pointer" onClick={() => handleSelectItem(item)}>
+                               <TableRow key={item.id} className="hover:bg-blue-50/50 cursor-pointer transition-colors" onClick={() => handleSelectItem(item)}>
                                    <TableCell className="font-mono font-medium text-blue-600">{item.code}</TableCell>
-                                   <TableCell>{item.name}</TableCell>
+                                   <TableCell className="text-gray-900">{item.name}</TableCell>
                                    <TableCell className="text-right">
-                                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0"><ArrowRight className="w-4 h-4"/></Button>
+                                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-gray-900 hover:text-blue-600"><ArrowRight className="w-4 h-4"/></Button>
                                    </TableCell>
                                </TableRow>
                            ))
