@@ -12,6 +12,7 @@ const RevisionModule = ({ currentUser }) => {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedItemForWizard, setSelectedItemForWizard] = useState(null);
   const [selectedRevisionDetail, setSelectedRevisionDetail] = useState(null);
+  const [selectedItemForHistory, setSelectedItemForHistory] = useState(null);
 
   const handleStartWizard = (item = null) => {
     setSelectedItemForWizard(item);
@@ -62,9 +63,10 @@ const RevisionModule = ({ currentUser }) => {
             </TabsContent>
             
             <TabsContent value="history" className="mt-0 h-full">
-               <div className="text-center text-gray-500 mb-4">Bir öğe seçerek geçmişini görüntüleyebilirsiniz.</div>
-               {/* This tab would typically have a selector for items first */}
-               <RevisionHistory itemId={null} /> 
+               <RevisionHistory 
+                 itemId={selectedItemForHistory?.id || null}
+                 onSelectItem={() => handleStartWizard(null)}
+               /> 
             </TabsContent>
           </div>
         </Tabs>

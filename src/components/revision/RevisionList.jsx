@@ -83,7 +83,7 @@ const RevisionList = ({ onViewDetail }) => {
             ) : (
               filteredRevisions.map((rev) => (
                 <TableRow key={rev.revisionId} className="hover:bg-gray-50">
-                  <TableCell className="font-medium text-xs">
+                  <TableCell className="font-medium text-xs text-gray-900">
                     {new Date(rev.createdAt).toLocaleDateString('tr-TR')}
                   </TableCell>
                   <TableCell>
@@ -92,17 +92,17 @@ const RevisionList = ({ onViewDetail }) => {
                   <TableCell className="font-mono text-xs font-bold text-blue-600">
                     {rev.itemCode}
                   </TableCell>
-                  <TableCell className="max-w-[200px] truncate" title={rev.itemName}>
+                  <TableCell className="max-w-[200px] truncate text-gray-900" title={rev.itemName}>
                     {rev.itemName}
                   </TableCell>
-                  <TableCell className="text-xs">
+                  <TableCell className="text-xs text-gray-900">
                     {rev.revisionType?.label || '-'}
                   </TableCell>
                   <TableCell>
                     {getStatusBadge(rev.status)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => onViewDetail(rev)}>
+                    <Button variant="ghost" size="sm" onClick={() => onViewDetail(rev)} className="text-gray-900 hover:text-gray-900 hover:bg-gray-100">
                       <Eye className="h-4 w-4 mr-1" /> İncele
                     </Button>
                   </TableCell>

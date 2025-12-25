@@ -1,18 +1,175 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRevisionData } from '@/hooks/useRevisionData';
-import { Clock, CheckCircle, ArrowRight } from 'lucide-react';
+import { useAuthContext } from '@/hooks/useAuthContext';
+import { getCompanyData } from '@/lib/supabase';
+import { Clock, CheckCircle, ArrowRight, Search } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 
-const RevisionHistory = ({ itemId }) => {
+const ITEM_LEVELS = ['Alan', 'Amaç', 'Hedef', 'Gösterge', 'Faaliyet'];
+
+const fetchItemsByLevel = async (level, userId, companyId, isAdmin) => {
+  try {
+    const tableMap = { 
+        'Alan': 'strategic_areas', 
+        'Amaç': 'strategic_objectives', 
+        'Hedef': 'targets', 
+        'Gösterge': 'indicators', 
+        'Faaliyet': 'activities'
+    };
+    const table = tableMap[level];
+    if (!table) return [];
+    
+    const hasSupabase = !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!hasSupabase || !userId || !companyId) {
+      return [];
+    }
+    
+    const data = await getCompanyData(table, userId, companyId, isAdmin);
+    
+    return (data || []).map(item => ({
+       id: item.id,
+       code: item.code,
+       name: item.name,
+       ...item
+    }));
+  } catch (e) {
+    console.error("Error fetching items for level " + level, e);
+    return [];
+  }
+};
+
+const RevisionHistory = ({ itemId, onSelectItem }) => {
+  const { currentUser } = useAuthContext();
   const { getRevisionsByItemId } = useRevisionData();
-  const revisions = itemId ? getRevisionsByItemId(itemId) : [];
+  const [selectedLevel, setSelectedLevel] = useState('Alan');
+  const [availableItems, setAvailableItems] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [loadingItems, setLoadingItems] = useState(false);
 
-  if (!itemId) return <div className="text-center py-10 text-gray-400">Bir öğe seçiniz.</div>;
-  if (revisions.length === 0) return <div className="text-center py-10 text-gray-400">Bu öğe için revizyon geçmişi bulunmamaktadır.</div>;
+  const loadItemsForLevel = useCallback(async (level) => {
+    setLoadingItems(true);
+    try {
+      const companyId = currentUser?.companyId;
+      const userId = currentUser?.id || currentUser?.userId;
+      const isAdmin = currentUser?.roleId === 'admin';
+      
+      const items = await fetchItemsByLevel(level, userId, companyId, isAdmin);
+      setAvailableItems(items);
+      setSearchTerm('');
+    } catch (error) {
+      console.error('Error loading items for level:', level, error);
+      setAvailableItems([]);
+    } finally {
+      setLoadingItems(false);
+    }
+  }, [currentUser?.companyId, currentUser?.id, currentUser?.userId, currentUser?.roleId]);
+
+  useEffect(() => {
+    loadItemsForLevel(selectedLevel);
+  }, [selectedLevel, loadItemsForLevel]);
+
+  const filteredItems = availableItems.filter(item => {
+    if (!searchTerm) return true;
+    const lower = searchTerm.toLowerCase();
+    return (item.code && item.code.toLowerCase().includes(lower)) ||
+           (item.name && item.name.toLowerCase().includes(lower));
+  });
+
+  const revisions = selectedItem?.id ? getRevisionsByItemId(selectedItem.id) : [];
+
+  if (!selectedItem) {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold flex items-center gap-2"><Search className="w-5 h-5"/> Öğe Seçimi</h3>
+        
+        <div className="flex gap-4 items-center bg-gray-50 p-4 rounded-lg border border-gray-100">
+          <div className="w-1/3">
+            <Label className="mb-1.5 block">Öğe Seviyesi</Label>
+            <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+              <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {ITEM_LEVELS.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-2/3">
+            <Label className="mb-1.5 block">Ara (Kod veya Ad)</Label>
+            <Input 
+              placeholder="Aramak için yazınız..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+              className="bg-white"
+            />
+          </div>
+        </div>
+
+        <div className="border rounded-md overflow-hidden bg-white">
+          <Table>
+            <TableHeader className="bg-gray-50">
+              <TableRow>
+                <TableHead className="w-[120px]">Kod</TableHead>
+                <TableHead>Ad / Tanım</TableHead>
+                <TableHead className="w-[100px] text-right">Seç</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loadingItems ? (
+                <TableRow><TableCell colSpan={3} className="text-center py-8 text-gray-400">Yükleniyor...</TableCell></TableRow>
+              ) : filteredItems.length === 0 ? (
+                <TableRow><TableCell colSpan={3} className="text-center py-8 text-gray-400">Kayıt bulunamadı.</TableCell></TableRow>
+              ) : (
+                filteredItems.map(item => (
+                  <TableRow key={item.id} className="hover:bg-blue-50/50 cursor-pointer" onClick={() => setSelectedItem(item)}>
+                    <TableCell className="font-mono font-medium text-blue-600">{item.code}</TableCell>
+                    <TableCell className="text-gray-900">{item.name}</TableCell>
+                    <TableCell className="text-right">
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0"><ArrowRight className="w-4 h-4"/></Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  }
+
+  if (revisions.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">{selectedItem.code} - {selectedItem.name}</h3>
+            <p className="text-sm text-gray-500">Seviye: {selectedLevel}</p>
+          </div>
+          <Button variant="outline" onClick={() => setSelectedItem(null)}>Farklı Öğe Seç</Button>
+        </div>
+        <div className="text-center py-10 text-gray-400 border rounded-lg bg-gray-50">
+          Bu öğe için revizyon geçmişi bulunmamaktadır.
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <ScrollArea className="h-[500px] w-full pr-4">
-      <div className="relative border-l-2 border-gray-200 ml-3 space-y-8 py-4">
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">{selectedItem.code} - {selectedItem.name}</h3>
+          <p className="text-sm text-gray-500">Seviye: {selectedLevel}</p>
+        </div>
+        <Button variant="outline" onClick={() => setSelectedItem(null)}>Farklı Öğe Seç</Button>
+      </div>
+      <ScrollArea className="h-[500px] w-full pr-4">
+        <div className="relative border-l-2 border-gray-200 ml-3 space-y-8 py-4">
         {revisions.map((rev, idx) => (
           <div key={rev.revisionId} className="relative pl-8">
             {/* Timeline Dot */}
@@ -56,8 +213,9 @@ const RevisionHistory = ({ itemId }) => {
             </div>
           </div>
         ))}
-      </div>
-    </ScrollArea>
+        </div>
+      </ScrollArea>
+    </div>
   );
 };
 
