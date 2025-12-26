@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   TrendingUp, AlertTriangle, FileText,
   ChevronRight, Calendar, Activity, Target, Zap,
   ArrowUpRight, ArrowDownRight, Clock, CheckCircle,
@@ -14,14 +14,14 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { currentUser } = useAuthContext();
   const [loading, setLoading] = useState(true);
-  
+
   const [dashboardData, setDashboardData] = useState({
     // Layer 1 - Corporate Status Band
     overallCompletion: 0,
     criticalAlarms: 0,
     totalBudgetVariance: 0,
     lastUpdateDate: new Date().toLocaleDateString('tr-TR'),
-    
+
     // Layer 2 - Summary Cards
     performance: {
       completedActivities: 0,
@@ -46,7 +46,7 @@ export default function Dashboard() {
       thisMonthCount: 0,
       mostRevisedItem: null
     },
-    
+
     // Layer 3 - Admin Radar
     attentionRequired: [],
     topCriticalRisks: [],
@@ -140,8 +140,8 @@ export default function Dashboard() {
           changeStatus: risk.change_status,
           relatedRecordType: risk.related_record_type,
           relatedRecordId: risk.related_record_id,
-          linkedActivities: risk.related_record_type === 'activity' && risk.related_record_id 
-            ? [risk.related_record_id] 
+          linkedActivities: risk.related_record_type === 'activity' && risk.related_record_id
+            ? [risk.related_record_id]
             : []
         }));
 
@@ -206,7 +206,7 @@ export default function Dashboard() {
               unmonitoredCount++;
             }
           } else {
-            const lastTracking = activityTracking.sort((a, b) => 
+            const lastTracking = activityTracking.sort((a, b) =>
               new Date(b.recordDate) - new Date(a.recordDate)
             )[0];
             const daysSinceTracking = Math.floor(
@@ -225,8 +225,8 @@ export default function Dashboard() {
           unmonitoredActivities: unmonitoredCount
         };
 
-        newData.overallCompletion = totalActivities > 0 
-          ? Math.round(totalCompletion / totalActivities) 
+        newData.overallCompletion = totalActivities > 0
+          ? Math.round(totalCompletion / totalActivities)
           : 0;
 
         // ===== CALCULATE RISK METRICS =====
@@ -278,8 +278,8 @@ export default function Dashboard() {
             estimated: activity.estimatedBudget,
             actual: actualSpending,
             variance: variance,
-            variancePercent: activity.estimatedBudget > 0 
-              ? ((variance / activity.estimatedBudget) * 100).toFixed(2) 
+            variancePercent: activity.estimatedBudget > 0
+              ? ((variance / activity.estimatedBudget) * 100).toFixed(2)
               : 0
           });
         });
@@ -327,8 +327,8 @@ export default function Dashboard() {
         newData.revision = {
           pendingApproval,
           thisMonthCount,
-          mostRevisedItem: mostRevisedItem 
-            ? { name: mostRevisedItem[0], count: mostRevisedItem[1] } 
+          mostRevisedItem: mostRevisedItem
+            ? { name: mostRevisedItem[0], count: mostRevisedItem[1] }
             : null
         };
 
@@ -388,7 +388,7 @@ export default function Dashboard() {
               isUnmonitored = true;
             }
           } else {
-            const lastTracking = activityTracking.sort((a, b) => 
+            const lastTracking = activityTracking.sort((a, b) =>
               new Date(b.recordDate) - new Date(a.recordDate)
             )[0];
             const daysSinceTracking = Math.floor(
@@ -433,7 +433,7 @@ export default function Dashboard() {
 
         // ===== SET LAST UPDATE DATE =====
         if (mappedTrackingRecords.length > 0) {
-          const lastTracking = mappedTrackingRecords.sort((a, b) => 
+          const lastTracking = mappedTrackingRecords.sort((a, b) =>
             new Date(b.recordDate) - new Date(a.recordDate)
           )[0];
           newData.lastUpdateDate = new Date(lastTracking.recordDate).toLocaleDateString('tr-TR');
@@ -498,74 +498,73 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
+    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
       {/* LAYER 1 - Corporate Status Band */}
-      <div className="mb-8 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg p-6 border border-gray-600">
-        <div className="grid grid-cols-4 gap-6">
-          {/* Overall Completion */}
+      <div className="mb-6 lg:mb-8 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg p-4 sm:p-6 border border-gray-600">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-300 text-sm mb-1 font-medium">Genel Tamamlanma</p>
-              <p className="text-4xl font-bold text-blue-400">{dashboardData.overallCompletion}%</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-gray-300 text-xs sm:text-sm mb-1 font-medium">Genel Tamamlanma</p>
+              <p className="text-2xl sm:text-4xl font-bold text-blue-400">{dashboardData.overallCompletion}%</p>
             </div>
-            <TrendingUp size={32} className="text-blue-400 opacity-50" />
+            <TrendingUp size={24} className="text-blue-400 opacity-50 hidden sm:block flex-shrink-0" />
           </div>
 
           {/* Critical Alarms */}
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-300 text-sm mb-1 font-medium">Kritik Alarm</p>
-              <p className={`text-4xl font-bold ${dashboardData.criticalAlarms > 0 ? 'text-red-400' : 'text-green-400'}`}>
+            <div className="min-w-0 flex-1">
+              <p className="text-gray-300 text-xs sm:text-sm mb-1 font-medium">Kritik Alarm</p>
+              <p className={`text-2xl sm:text-4xl font-bold ${dashboardData.criticalAlarms > 0 ? 'text-red-400' : 'text-green-400'}`}>
                 {dashboardData.criticalAlarms}
               </p>
             </div>
-            <AlertTriangle size={32} className={dashboardData.criticalAlarms > 0 ? 'text-red-400 opacity-50' : 'text-green-400 opacity-50'} />
+            <AlertTriangle size={24} className={`hidden sm:block flex-shrink-0 ${dashboardData.criticalAlarms > 0 ? 'text-red-400 opacity-50' : 'text-green-400 opacity-50'}`} />
           </div>
 
           {/* Total Budget Variance */}
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-300 text-sm mb-1 font-medium">Toplam Bütçe Sapması</p>
-              <p className={`text-3xl font-bold ${dashboardData.budget.variance > 0 ? 'text-red-400' : 'text-green-400'}`}>
+            <div className="min-w-0 flex-1">
+              <p className="text-gray-300 text-xs sm:text-sm mb-1 font-medium">Toplam Bütçe Sapması</p>
+              <p className={`text-lg sm:text-2xl lg:text-3xl font-bold truncate ${dashboardData.budget.variance > 0 ? 'text-red-400' : 'text-green-400'}`}>
                 {formatCurrency(dashboardData.budget.variance)}
               </p>
             </div>
-            <span className={`text-3xl font-bold ${dashboardData.budget.variance > 0 ? 'text-red-400' : 'text-green-400'}`}>&#8378;</span>
+            <span className={`text-xl sm:text-3xl font-bold hidden sm:block flex-shrink-0 ${dashboardData.budget.variance > 0 ? 'text-red-400' : 'text-green-400'}`}>&#8378;</span>
           </div>
 
           {/* Last Update */}
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-300 text-sm mb-1 font-medium">Son Güncelleme</p>
-              <p className="text-lg font-semibold text-gray-100">{dashboardData.lastUpdateDate}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-gray-300 text-xs sm:text-sm mb-1 font-medium">Son Güncelleme</p>
+              <p className="text-sm sm:text-lg font-semibold text-gray-100">{dashboardData.lastUpdateDate}</p>
             </div>
-            <Calendar size={32} className="text-purple-400 opacity-50" />
+            <Calendar size={24} className="text-purple-400 opacity-50 hidden sm:block flex-shrink-0" />
           </div>
         </div>
       </div>
 
       {/* LAYER 2 - 4 Summary Cards */}
-      <div className="grid grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 lg:mb-8">
         {/* Card 1: Performance */}
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white">Performans</h3>
-            <Activity size={20} className="text-cyan-400" />
+        <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-bold text-white">Performans</h3>
+            <Activity size={18} className="text-cyan-400 sm:w-5 sm:h-5" />
           </div>
-          <div className="space-y-3 mb-6">
+          <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
             <div className="flex justify-between items-center">
-              <span className="text-gray-300 text-sm font-medium">Tamamlanan</span>
-              <span className="font-bold text-cyan-400">{dashboardData.performance.completedActivities}/{dashboardData.performance.totalActivities}</span>
+              <span className="text-gray-300 text-xs sm:text-sm font-medium">Tamamlanan</span>
+              <span className="font-bold text-cyan-400 text-sm sm:text-base">{dashboardData.performance.completedActivities}/{dashboardData.performance.totalActivities}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-300 text-sm font-medium">Geciken</span>
-              <span className={`font-bold ${dashboardData.performance.delayedActivities > 0 ? 'text-red-400' : 'text-green-400'}`}>
+              <span className="text-gray-300 text-xs sm:text-sm font-medium">Geciken</span>
+              <span className={`font-bold text-sm sm:text-base ${dashboardData.performance.delayedActivities > 0 ? 'text-red-400' : 'text-green-400'}`}>
                 {dashboardData.performance.delayedActivities}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-300 text-sm font-medium">İzleme Yok (60+ gün)</span>
-              <span className={`font-bold ${dashboardData.performance.unmonitoredActivities > 0 ? 'text-orange-400' : 'text-green-400'}`}>
+              <span className="text-gray-300 text-xs sm:text-sm font-medium">İzleme Yok (60+ gün)</span>
+              <span className={`font-bold text-sm sm:text-base ${dashboardData.performance.unmonitoredActivities > 0 ? 'text-orange-400' : 'text-green-400'}`}>
                 {dashboardData.performance.unmonitoredActivities}
               </span>
             </div>
@@ -580,12 +579,12 @@ export default function Dashboard() {
         </div>
 
         {/* Card 2: Risk Status */}
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white">Risk Durumu</h3>
-            <AlertTriangle size={20} className="text-red-400" />
+        <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-bold text-white">Risk Durumu</h3>
+            <AlertTriangle size={18} className="text-red-400 sm:w-5 sm:h-5" />
           </div>
-          <div className="space-y-3 mb-6">
+          <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
             <div className="flex justify-between items-center">
               <span className="text-gray-300 text-sm font-medium">Kritik</span>
               <span className="font-bold text-red-400">{dashboardData.risk.critical}</span>
@@ -613,23 +612,23 @@ export default function Dashboard() {
         </div>
 
         {/* Card 3: Budget Usage */}
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white">Bütçe Kullanımı</h3>
-            <span className="text-2xl font-bold text-green-400" aria-label="Turkish Lira">&#8378;</span>
+        <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-bold text-white">Bütçe Kullanımı</h3>
+            <span className="text-xl sm:text-2xl font-bold text-green-400" aria-label="Turkish Lira">&#8378;</span>
           </div>
-          <div className="space-y-3 mb-6">
+          <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
             <div className="flex justify-between items-center">
-              <span className="text-gray-300 text-sm font-medium">Tahmini</span>
-              <span className="font-bold text-gray-100">{formatCurrency(dashboardData.budget.estimated)}</span>
+              <span className="text-gray-300 text-xs sm:text-sm font-medium">Tahmini</span>
+              <span className="font-bold text-gray-100 text-xs sm:text-base truncate ml-2">{formatCurrency(dashboardData.budget.estimated)}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-300 text-sm font-medium">Gerçekleşen</span>
-              <span className="font-bold text-blue-400">{formatCurrency(dashboardData.budget.actual)}</span>
+              <span className="text-gray-300 text-xs sm:text-sm font-medium">Gerçekleşen</span>
+              <span className="font-bold text-blue-400 text-xs sm:text-base truncate ml-2">{formatCurrency(dashboardData.budget.actual)}</span>
             </div>
             <div className="flex justify-between items-center pt-2 border-t border-gray-700">
-              <span className="text-gray-300 text-sm font-medium">Sapma</span>
-              <span className={`font-bold ${dashboardData.budget.variance > 0 ? 'text-red-400' : 'text-green-400'}`}>
+              <span className="text-gray-300 text-xs sm:text-sm font-medium">Sapma</span>
+              <span className={`font-bold text-xs sm:text-base truncate ml-2 ${dashboardData.budget.variance > 0 ? 'text-red-400' : 'text-green-400'}`}>
                 {formatCurrency(dashboardData.budget.variance)}
               </span>
             </div>
@@ -644,12 +643,12 @@ export default function Dashboard() {
         </div>
 
         {/* Card 4: Revision Activity */}
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white">Revizyon Hareketleri</h3>
-            <FileText size={20} className="text-purple-400" />
+        <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-bold text-white">Revizyon Hareketleri</h3>
+            <FileText size={18} className="text-purple-400 sm:w-5 sm:h-5" />
           </div>
-          <div className="space-y-3 mb-6">
+          <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
             <div className="flex justify-between items-center">
               <span className="text-gray-300 text-sm font-medium">Onay Bekleyen</span>
               <span className={`font-bold ${dashboardData.revision.pendingApproval > 0 ? 'text-orange-400' : 'text-green-400'}`}>
@@ -679,19 +678,19 @@ export default function Dashboard() {
       </div>
 
       {/* LAYER 3 - Admin Radar */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* A) Attention Required */}
-        <div className="col-span-2 bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-white">
-            <AlertCircle size={20} className="text-red-400" />
+        <div className="lg:col-span-2 bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
+          <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2 text-white">
+            <AlertCircle size={18} className="text-red-400 sm:w-5 sm:h-5" />
             Dikkat Gerektirenler
           </h3>
           {dashboardData.attentionRequired.length > 0 ? (
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {dashboardData.attentionRequired.map((item, idx) => (
-                <div key={idx} className={`flex items-center justify-between p-3 rounded border-l-4 ${getSeverityColor(item.severity)} bg-opacity-20`}>
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-100">{item.code} - {item.name}</p>
+                <div key={idx} className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded border-l-4 gap-2 ${getSeverityColor(item.severity)} bg-opacity-20`}>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-100 text-sm sm:text-base truncate">{item.code} - {item.name}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`text-xs font-bold px-2 py-1 rounded ${getSeverityBadgeColor(item.severity)}`}>
                         {item.reason}
@@ -704,7 +703,7 @@ export default function Dashboard() {
                       else if (item.module === 'budget-management') navigate('/budget');
                       else if (item.module === 'risk-management') navigate('/risks');
                     }}
-                    className="ml-2 px-3 py-1 bg-gray-700 text-gray-100 rounded hover:bg-gray-600 transition text-xs flex items-center gap-1 font-medium"
+                    className="px-3 py-1 bg-gray-700 text-gray-100 rounded hover:bg-gray-600 transition text-xs flex items-center gap-1 font-medium flex-shrink-0 self-start sm:self-center"
                   >
                     Detaya Git
                     <ChevronRight size={14} />
@@ -720,9 +719,9 @@ export default function Dashboard() {
         {/* B) Top 3 Lists */}
         <div className="space-y-6">
           {/* Top 3 Critical Risks */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-white">
-              <Zap size={20} className="text-red-400" />
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
+            <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2 text-white">
+              <Zap size={18} className="text-red-400 sm:w-5 sm:h-5" />
               En Kritik 3 Risk
             </h3>
             {dashboardData.topCriticalRisks.length > 0 ? (
@@ -744,10 +743,10 @@ export default function Dashboard() {
           </div>
 
           {/* Top 3 Variance Activities */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-white">
-              <TrendingDown size={20} className="text-orange-400" />
-              En Çok Sapma Yaşayan 3 Faaliyet
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
+            <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2 text-white">
+              <TrendingDown size={18} className="text-orange-400 sm:w-5 sm:h-5" />
+              <span className="truncate">En Çok Sapma Yaşayan 3 Faaliyet</span>
             </h3>
             {dashboardData.topVarianceActivities.length > 0 ? (
               <div className="space-y-3">
