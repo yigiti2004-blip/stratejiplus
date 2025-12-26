@@ -68,7 +68,11 @@ const SpManagement = ({ currentUser: propCurrentUser }) => {
         activities: mapData(activities),
         organizations: mapData(organizations),
       });
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error(e); 
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCreate = () => {
