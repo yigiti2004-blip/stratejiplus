@@ -83,6 +83,8 @@ export const useRiskData = () => {
       } catch (error) {
         console.error('Error loading risk data:', error);
         console.error('Error details:', JSON.stringify(error, null, 2));
+      } finally {
+        setLoading(false);
       }
     };
 
