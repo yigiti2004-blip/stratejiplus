@@ -3,7 +3,7 @@ import {
   TrendingUp, AlertTriangle, FileText,
   ChevronRight, Calendar, Activity, Target, Zap,
   ArrowUpRight, ArrowDownRight, Clock, CheckCircle,
-  AlertCircle, TrendingDown, Coins
+  AlertCircle, TrendingDown
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/hooks/useAuthContext';
@@ -530,7 +530,7 @@ export default function Dashboard() {
                 {formatCurrency(dashboardData.budget.variance)}
               </p>
             </div>
-            <Coins size={32} className={dashboardData.budget.variance > 0 ? 'text-red-400 opacity-50' : 'text-green-400 opacity-50'} />
+            <span className={`text-3xl font-bold ${dashboardData.budget.variance > 0 ? 'text-red-400' : 'text-green-400'}`}>₺</span>
           </div>
 
           {/* Last Update */}
@@ -616,7 +616,7 @@ export default function Dashboard() {
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-white">Bütçe Kullanımı</h3>
-            <Coins size={20} className="text-green-400" />
+            <span className="text-2xl font-bold text-green-400">₺</span>
           </div>
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center">
