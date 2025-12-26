@@ -15,10 +15,8 @@ CREATE TABLE IF NOT EXISTS activity_realization_records (
   outcome_note TEXT,
   created_by VARCHAR(50) NOT NULL REFERENCES users(user_id) ON DELETE RESTRICT,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-  company_id VARCHAR(50) REFERENCES companies(company_id) ON DELETE CASCADE,
-  -- Prevent updates and deletes (immutable records)
-  CONSTRAINT no_updates CHECK (created_at = updated_at OR updated_at IS NULL),
-  CONSTRAINT no_deletes CHECK (true) -- Enforced at application level
+  company_id VARCHAR(50) REFERENCES companies(company_id) ON DELETE CASCADE
+  -- Note: Records are immutable - updates and deletes are prevented at application level
 );
 
 CREATE INDEX IF NOT EXISTS idx_realization_records_activity ON activity_realization_records(activity_id);
