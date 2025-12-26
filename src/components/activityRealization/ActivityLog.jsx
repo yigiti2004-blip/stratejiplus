@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, User, FileText, DollarSign } from 'lucide-react';
+import { Calendar, User, FileText } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 /**
@@ -58,7 +58,7 @@ const ActivityLog = ({ activity, realizationRecords }) => {
 
                   {record.expense_flag === 'Yes' && (
                     <div className="flex items-center gap-2 text-yellow-700 bg-yellow-50 px-2 py-1 rounded text-xs">
-                      <DollarSign className="w-3 h-3" />
+                      <span className="text-xs font-bold">₺</span>
                       Harcama işaretli
                     </div>
                   )}

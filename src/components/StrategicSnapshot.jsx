@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { 
-  ChevronDown, ChevronRight, 
-  ExternalLink, DollarSign, AlertTriangle, FileText,
+import {
+  ChevronDown, ChevronRight,
+  ExternalLink, AlertTriangle, FileText,
   Calendar, Users, Target, TrendingUp, Clock, CheckCircle,
   ArrowRight, Eye, Activity
 } from 'lucide-react';
@@ -30,14 +30,14 @@ export default function StrategicSnapshot() {
   const logTimelineData = async (activityId) => {
     console.log('=== TIMELINE DATA DEBUG ===');
     console.log('Activity ID:', activityId);
-    
+
     const companyId = currentUser?.companyId;
     const userId = currentUser?.id || currentUser?.userId;
     const isAdmin = currentUser?.roleId === 'admin';
-    
+
     let risks = [];
     let revisions = [];
-    
+
     if (companyId && userId) {
       const [risksRaw, revisionsRaw] = await Promise.all([
         getCompanyData('risks', userId, companyId, isAdmin),
@@ -46,31 +46,31 @@ export default function StrategicSnapshot() {
       risks = risksRaw || [];
       revisions = revisionsRaw || [];
     }
-    
+
     console.log('Total Risks in system:', risks.length);
     // console.log('Risks data sample:', risks.slice(0, 2));
-    
+
     console.log('Total Revisions in system:', revisions.length);
     // console.log('Revisions data sample:', revisions.slice(0, 2));
-    
+
     // Find risks linked to this activity
     const linkedRisks = risks.filter(risk => {
       return (risk.linkedActivities && Array.isArray(risk.linkedActivities) && risk.linkedActivities.includes(activityId)) ||
-             (risk.activityId === activityId) ||
-             (risk.relatedActivities && Array.isArray(risk.relatedActivities) && risk.relatedActivities.includes(activityId)) ||
-             (risk.activities && Array.isArray(risk.activities) && risk.activities.includes(activityId));
+        (risk.activityId === activityId) ||
+        (risk.relatedActivities && Array.isArray(risk.relatedActivities) && risk.relatedActivities.includes(activityId)) ||
+        (risk.activities && Array.isArray(risk.activities) && risk.activities.includes(activityId));
     });
     console.log('Risks linked to activity:', linkedRisks.length, linkedRisks);
-    
+
     // Find revisions linked to this activity
     const linkedRevisions = revisions.filter(revision => {
       return (revision.scope && Array.isArray(revision.scope) && revision.scope.includes(activityId)) ||
-             (revision.affectedActivities && Array.isArray(revision.affectedActivities) && revision.affectedActivities.includes(activityId)) ||
-             (revision.itemId === activityId && revision.itemType === 'Faaliyet') ||
-             (revision.activityId === activityId) ||
-             (revision.activities && Array.isArray(revision.activities) && revision.activities.includes(activityId)) ||
-             (revision.relatedActivities && Array.isArray(revision.relatedActivities) && revision.relatedActivities.includes(activityId)) ||
-             (revision.scopeItems && Array.isArray(revision.scopeItems) && revision.scopeItems.some(item => item.id === activityId || item.activityId === activityId));
+        (revision.affectedActivities && Array.isArray(revision.affectedActivities) && revision.affectedActivities.includes(activityId)) ||
+        (revision.itemId === activityId && revision.itemType === 'Faaliyet') ||
+        (revision.activityId === activityId) ||
+        (revision.activities && Array.isArray(revision.activities) && revision.activities.includes(activityId)) ||
+        (revision.relatedActivities && Array.isArray(revision.relatedActivities) && revision.relatedActivities.includes(activityId)) ||
+        (revision.scopeItems && Array.isArray(revision.scopeItems) && revision.scopeItems.some(item => item.id === activityId || item.activityId === activityId));
     });
     console.log('Revisions linked to activity:', linkedRevisions.length, linkedRevisions);
   };
@@ -117,7 +117,7 @@ export default function StrategicSnapshot() {
     if (Array.isArray(risksData)) {
       risksData.forEach(risk => {
         // Check multiple possible field names for activity linkage
-        const isLinkedToActivity = 
+        const isLinkedToActivity =
           (risk.linkedActivities && Array.isArray(risk.linkedActivities) && risk.linkedActivities.includes(activityId)) ||
           (risk.activityId === activityId) ||
           (risk.relatedActivities && Array.isArray(risk.relatedActivities) && risk.relatedActivities.includes(activityId)) ||
@@ -191,7 +191,7 @@ export default function StrategicSnapshot() {
     if (Array.isArray(revisionsData)) {
       revisionsData.forEach(revision => {
         // Check multiple possible field names for activity inclusion
-        const isActivityInScope = 
+        const isActivityInScope =
           (revision.scope && Array.isArray(revision.scope) && revision.scope.includes(activityId)) ||
           (revision.affectedActivities && Array.isArray(revision.affectedActivities) && revision.affectedActivities.includes(activityId)) ||
           (revision.itemId === activityId && revision.itemType === 'Faaliyet') ||
@@ -295,20 +295,20 @@ export default function StrategicSnapshot() {
         // --- 2) Budget & other modules from Supabase ---
         let budgetChapters = [];
         let expenses = [];
-        
+
         if (companyId && userId) {
           const [budgetChaptersRaw, expensesRaw] = await Promise.all([
             getCompanyData('budget_chapters', userId, companyId, isAdmin),
             getCompanyData('expenses', userId, companyId, isAdmin),
           ]);
-          
+
           budgetChapters = (budgetChaptersRaw || []).map(item => ({
             ...item,
             id: item.id,
             code: item.code,
             name: item.name,
           }));
-          
+
           expenses = (expensesRaw || []).map(item => ({
             ...item,
             id: item.id,
@@ -352,14 +352,14 @@ export default function StrategicSnapshot() {
         let trackingRecords = [];
         let risksData = [];
         let revisionsData = [];
-        
+
         if (companyId && userId) {
           const [realizationRecordsRaw, risksRaw, revisionsRaw] = await Promise.all([
             getCompanyData('activity_realization_records', userId, companyId, isAdmin),
             getCompanyData('risks', userId, companyId, isAdmin),
             getCompanyData('revisions', userId, companyId, isAdmin),
           ]);
-          
+
           // Map realization records to tracking records format
           trackingRecords = (realizationRecordsRaw || []).map(item => ({
             id: item.id,
@@ -367,7 +367,7 @@ export default function StrategicSnapshot() {
             recordDate: item.record_date || item.created_at,
             completionPercentage: Number(item.completion_percentage) || 0,
           }));
-          
+
           risksData = (risksRaw || []).map(item => ({
             ...item,
             id: item.id,
@@ -375,7 +375,7 @@ export default function StrategicSnapshot() {
             relatedRecordId: item.related_record_id,
             relatedRecordType: item.related_record_type,
           }));
-          
+
           revisionsData = (revisionsRaw || []).map(item => ({
             ...item,
             id: item.id,
@@ -646,7 +646,7 @@ export default function StrategicSnapshot() {
       // Build activity timeline - ENHANCED with Risk and Revisions
       const timeline = buildActivityTimeline(element.id, trackingRecords, budgetData, risksData, revisionsData);
       setActivityTimeline(timeline);
-      
+
       // DEBUG: Log timeline data
       logTimelineData(element.id);
     }
@@ -711,7 +711,7 @@ export default function StrategicSnapshot() {
   // Navigate to Budget with activity code
   const navigateToBudget = () => {
     if (elementDetails?.type === 'activity' && elementDetails?.code) {
-       navigate('/budget', { state: { activityCode: elementDetails.code } }); 
+      navigate('/budget', { state: { activityCode: elementDetails.code } });
     }
   };
 
@@ -723,7 +723,7 @@ export default function StrategicSnapshot() {
       <div className="w-1/3 bg-gray-800 border-r border-gray-700 overflow-y-auto">
         <div className="p-6">
           <h2 className="text-2xl font-bold mb-6">Stratejik Plan Ağacı</h2>
-          
+
           {strategies.length > 0 ? (
             <div className="space-y-2">
               {strategies.map((area) => (
@@ -734,11 +734,10 @@ export default function StrategicSnapshot() {
                       toggleNode(`area-${area.id}`);
                       selectElement('area', area, trackingRecords, budgetData, risksData, revisionsData);
                     }}
-                    className={`p-3 rounded cursor-pointer transition ${
-                      selectedElement?.element?.id === area.id && selectedElement?.type === 'area'
+                    className={`p-3 rounded cursor-pointer transition ${selectedElement?.element?.id === area.id && selectedElement?.type === 'area'
                         ? 'bg-blue-600 text-white'
                         : 'hover:bg-gray-700'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2">
                       {expandedNodes[`area-${area.id}`] ? (
@@ -758,11 +757,10 @@ export default function StrategicSnapshot() {
                           toggleNode(`objective-${objective.id}`);
                           selectElement('objective', objective, trackingRecords, budgetData, risksData, revisionsData);
                         }}
-                        className={`p-3 rounded cursor-pointer transition ${
-                          selectedElement?.element?.id === objective.id && selectedElement?.type === 'objective'
+                        className={`p-3 rounded cursor-pointer transition ${selectedElement?.element?.id === objective.id && selectedElement?.type === 'objective'
                             ? 'bg-blue-600 text-white'
                             : 'hover:bg-gray-700'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-2">
                           {expandedNodes[`objective-${objective.id}`] ? (
@@ -782,11 +780,10 @@ export default function StrategicSnapshot() {
                               toggleNode(`target-${target.id}`);
                               selectElement('target', target, trackingRecords, budgetData, risksData, revisionsData);
                             }}
-                            className={`p-3 rounded cursor-pointer transition ${
-                              selectedElement?.element?.id === target.id && selectedElement?.type === 'target'
+                            className={`p-3 rounded cursor-pointer transition ${selectedElement?.element?.id === target.id && selectedElement?.type === 'target'
                                 ? 'bg-blue-600 text-white'
                                 : 'hover:bg-gray-700'
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center gap-2">
                               {expandedNodes[`target-${target.id}`] ? (
@@ -805,11 +802,10 @@ export default function StrategicSnapshot() {
                               onClick={() => {
                                 selectElement('activity', activity, trackingRecords, budgetData, risksData, revisionsData);
                               }}
-                              className={`ml-4 p-3 rounded cursor-pointer transition ${
-                                selectedElement?.element?.id === activity.id && selectedElement?.type === 'activity'
+                              className={`ml-4 p-3 rounded cursor-pointer transition ${selectedElement?.element?.id === activity.id && selectedElement?.type === 'activity'
                                   ? 'bg-blue-600 text-white'
                                   : 'hover:bg-gray-700'
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-2">
                                 <span className="font-semibold text-sm">{activity.name}</span>
@@ -836,7 +832,7 @@ export default function StrategicSnapshot() {
             {/* Header Section */}
             <div className="mb-8 pb-8 border-b border-gray-700">
               <h1 className="text-3xl font-bold mb-4">{elementDetails.name}</h1>
-              
+
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <p className="text-gray-400 text-sm mb-1">Kod</p>
@@ -862,7 +858,7 @@ export default function StrategicSnapshot() {
                 <TrendingUp size={20} className="text-blue-400" />
                 Gerçekleşme Oranı
               </h3>
-              
+
               <div className="bg-gray-800 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
@@ -874,13 +870,12 @@ export default function StrategicSnapshot() {
                 </div>
                 <div className="w-full bg-gray-700 rounded-full h-3">
                   <div
-                    className={`h-3 rounded-full ${
-                      elementDetails.performance >= 75
+                    className={`h-3 rounded-full ${elementDetails.performance >= 75
                         ? 'bg-green-500'
                         : elementDetails.performance >= 50
-                        ? 'bg-yellow-500'
-                        : 'bg-red-500'
-                    }`}
+                          ? 'bg-yellow-500'
+                          : 'bg-red-500'
+                      }`}
                     style={{ width: `${elementDetails.performance}%` }}
                   ></div>
                 </div>
@@ -894,7 +889,7 @@ export default function StrategicSnapshot() {
                   <Calendar size={20} className="text-purple-400" />
                   Zaman Bilgisi
                 </h3>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-gray-800 rounded-lg p-4">
                     <p className="text-gray-400 text-sm mb-2">Başlangıç Tarihi</p>
@@ -915,7 +910,7 @@ export default function StrategicSnapshot() {
                   <Clock size={20} className="text-cyan-400" />
                   İzleme Kayıtları ({elementDetails.trackingRecords.length})
                 </h3>
-                
+
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {elementDetails.trackingRecords.map((record, idx) => (
                     <div key={idx} className="bg-gray-800 rounded-lg p-4 border-l-4 border-cyan-500">
@@ -940,10 +935,10 @@ export default function StrategicSnapshot() {
             {(elementDetails.budget.estimated > 0 || elementDetails.budget.actual > 0) && (
               <div className="mb-8 pb-8 border-b border-gray-700">
                 <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                  <DollarSign size={20} className="text-green-400" />
+                  <span className="text-xl font-bold text-green-400">₺</span>
                   Bütçe Özeti
                 </h3>
-                
+
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-gray-800 rounded-lg p-4">
                     <p className="text-gray-400 text-sm mb-2">Tahmini Bütçe</p>
@@ -974,24 +969,23 @@ export default function StrategicSnapshot() {
                   <Activity size={20} className="text-indigo-400" />
                   Faaliyet Hareketleri ({activityTimeline.length})
                 </h3>
-                
+
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                   {activityTimeline.map((event, idx) => (
                     <div key={idx} className={`rounded-lg p-4 border-l-4 ${getTimelineSourceColor(event.source)}`}>
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-xs font-bold px-2 py-1 rounded ${
-                              event.source === 'Plan İzleme' ? 'bg-cyan-900 text-cyan-200' :
-                              event.source === 'Bütçe' ? 'bg-green-900 text-green-200' :
-                              event.source === 'Risk Yönetimi' ? 'bg-red-900 text-red-200' :
-                              'bg-purple-900 text-purple-200'
-                            }`}>
+                            <span className={`text-xs font-bold px-2 py-1 rounded ${event.source === 'Plan İzleme' ? 'bg-cyan-900 text-cyan-200' :
+                                event.source === 'Bütçe' ? 'bg-green-900 text-green-200' :
+                                  event.source === 'Risk Yönetimi' ? 'bg-red-900 text-red-200' :
+                                    'bg-purple-900 text-purple-200'
+                              }`}>
                               {event.source}
                             </span>
                             <p className="text-sm text-gray-400">{formatDate(event.date)}</p>
                           </div>
-                          
+
                           {/* Plan İzleme Entry */}
                           {event.type === 'tracking' && (
                             <>
@@ -1054,11 +1048,10 @@ export default function StrategicSnapshot() {
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-400">Durum:</span>
-                                  <span className={`font-semibold ${
-                                    event.approvalStatus === 'Onaylandı' ? 'text-green-400' :
-                                    event.approvalStatus === 'Taslak' ? 'text-yellow-400' :
-                                    'text-gray-400'
-                                  }`}>
+                                  <span className={`font-semibold ${event.approvalStatus === 'Onaylandı' ? 'text-green-400' :
+                                      event.approvalStatus === 'Taslak' ? 'text-yellow-400' :
+                                        'text-gray-400'
+                                    }`}>
                                     {event.approvalStatus}
                                   </span>
                                 </div>
@@ -1069,13 +1062,12 @@ export default function StrategicSnapshot() {
                             </>
                           )}
                         </div>
-                        
-                        <p className={`text-lg font-bold ml-4 ${
-                          event.source === 'Plan İzleme' ? 'text-cyan-400' :
-                          event.source === 'Bütçe' ? 'text-green-400' :
-                          event.source === 'Risk Yönetimi' ? 'text-red-400' :
-                          'text-purple-400'
-                        }`}>
+
+                        <p className={`text-lg font-bold ml-4 ${event.source === 'Plan İzleme' ? 'text-cyan-400' :
+                            event.source === 'Bütçe' ? 'text-green-400' :
+                              event.source === 'Risk Yönetimi' ? 'text-red-400' :
+                                'text-purple-400'
+                          }`}>
                           {event.value}
                         </p>
                       </div>
@@ -1093,7 +1085,7 @@ export default function StrategicSnapshot() {
                   <AlertTriangle size={20} className="text-red-400" />
                   Risk Özeti
                 </h3>
-                
+
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="bg-gray-800 rounded-lg p-4">
                     <p className="text-gray-400 text-sm mb-2">Toplam Risk</p>
@@ -1132,7 +1124,7 @@ export default function StrategicSnapshot() {
                   <FileText size={20} className="text-purple-400" />
                   Revizyon Bilgisi
                 </h3>
-                
+
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="bg-gray-800 rounded-lg p-4">
                     <p className="text-gray-400 text-sm mb-2">Toplam Revizyon</p>
@@ -1181,7 +1173,7 @@ export default function StrategicSnapshot() {
                       onClick={navigateToBudget}
                       className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center gap-2 text-sm"
                     >
-                      <DollarSign size={18} />
+                      <span className="text-lg font-bold">₺</span>
                       Bütçe Harcamalarına Git
                       <ExternalLink size={16} />
                     </button>

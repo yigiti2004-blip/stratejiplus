@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, AlertTriangle, FileText, ExternalLink } from 'lucide-react';
+import { AlertTriangle, FileText, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,7 +26,7 @@ const LinkedModules = ({ activity, hasExpenseRecords }) => {
         <div className="border border-gray-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-gray-600" />
+              <span className="text-lg font-bold text-gray-600">₺</span>
               <span className="font-medium text-gray-900">Bütçe Bilgileri</span>
             </div>
             {hasExpenseRecords && (

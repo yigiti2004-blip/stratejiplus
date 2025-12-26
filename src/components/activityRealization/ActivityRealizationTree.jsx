@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronRight, ChevronDown, Target, TrendingUp, DollarSign, AlertTriangle, FileText } from 'lucide-react';
+import { ChevronRight, ChevronDown, Target, TrendingUp, AlertTriangle, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -25,39 +25,39 @@ const ActivityRealizationTree = ({
     const { areas, objectives, targets, indicators } = hierarchyData;
 
     return (areas || []).map(area => {
-      const areaObjectives = (objectives || []).filter(o => 
+      const areaObjectives = (objectives || []).filter(o =>
         o.strategic_area_id === area.id || o.strategicAreaId === area.id
       );
-      
+
       return {
         ...area,
         type: 'Alan',
         completion: calculateAreaCompletion ? calculateAreaCompletion(area.id, areaObjectives) : 0,
         children: areaObjectives.map(obj => {
-          const objTargets = (targets || []).filter(t => 
+          const objTargets = (targets || []).filter(t =>
             t.objective_id === obj.id || t.objectiveId === obj.id
           );
-          
+
           return {
             ...obj,
             type: 'Amaç',
             completion: calculateObjectiveCompletion ? calculateObjectiveCompletion(obj.id, objTargets) : 0,
             children: objTargets.map(target => {
-              const targetIndicators = (indicators || []).filter(i => 
+              const targetIndicators = (indicators || []).filter(i =>
                 i.target_id === target.id || i.targetId === target.id
               );
-              const targetActivities = (activities || []).filter(a => 
-                (a.target_id === target.id || a.targetId === target.id) && 
+              const targetActivities = (activities || []).filter(a =>
+                (a.target_id === target.id || a.targetId === target.id) &&
                 (!a.indicator_id && !a.indicatorId)
               );
-              
+
               return {
                 ...target,
                 type: 'Hedef',
                 completion: calculateTargetCompletion ? calculateTargetCompletion(target.id, targetIndicators, targetActivities) : 0,
                 children: [
                   ...targetIndicators.map(ind => {
-                    const indActivities = (activities || []).filter(a => 
+                    const indActivities = (activities || []).filter(a =>
                       a.indicator_id === ind.id || a.indicatorId === ind.id
                     );
                     return {

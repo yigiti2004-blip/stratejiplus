@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, User, FileText, DollarSign, AlertTriangle, ExternalLink, Plus } from 'lucide-react';
+import { Calendar, User, FileText, AlertTriangle, ExternalLink, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ActivityLog from './ActivityLog';
 import LinkedModules from './LinkedModules';

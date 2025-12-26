@@ -19,7 +19,7 @@ export const useHarcamalar = () => {
       if (hasSupabase && companyId && userId) {
         // Load expenses from Supabase
         const expensesRaw = await getCompanyData('expenses', userId, companyId, isAdmin);
-        
+
         // Also load activities to map activity_id to faaliyet_kodu
         const activitiesRaw = await getCompanyData('activities', userId, companyId, isAdmin);
         const activityMap = {};
@@ -32,7 +32,7 @@ export const useHarcamalar = () => {
           const faaliyet_kodu = activityMap[item.activity_id] || item.activity_id || '';
           // Ensure budget_chapter_id is converted to string for consistent matching
           const fasilId = item.budget_chapter_id ? String(item.budget_chapter_id).trim() : '';
-          
+
           return {
             ...item,
             harcama_id: item.id,
@@ -52,9 +52,9 @@ export const useHarcamalar = () => {
         });
 
         console.log('📥 Loaded expenses from Supabase:', mapped.length, 'items');
-        console.log('📥 Expense fasil_ids:', mapped.map(h => ({ 
-          harcama_id: h.harcama_id, 
-          fasil_id: h.fasil_id, 
+        console.log('📥 Expense fasil_ids:', mapped.map(h => ({
+          harcama_id: h.harcama_id,
+          fasil_id: h.fasil_id,
           fasil_id_type: typeof h.fasil_id,
           budget_chapter_id_from_db: expensesRaw.find(e => e.id === h.harcama_id)?.budget_chapter_id
         })));
@@ -67,11 +67,6 @@ export const useHarcamalar = () => {
     } catch (error) {
       console.error('Failed to load expenses (harcamalar):', error);
       setHarcamalar([]);
-          setHarcamalar(JSON.parse(stored));
-        }
-      } catch {
-        setHarcamalar([]);
-      }
     }
   }, [currentUser?.companyId, currentUser?.id, currentUser?.userId, currentUser?.roleId]);
 
@@ -94,7 +89,7 @@ export const useHarcamalar = () => {
       // Find activity_id from faaliyet_kodu
       const activitiesRaw = await getCompanyData('activities', userId, companyId, currentUser?.roleId === 'admin');
       const activity = (activitiesRaw || []).find((act) => act.code === formData.faaliyet_kodu);
-      
+
       if (!activity) {
         throw new Error(`Activity with code "${formData.faaliyet_kodu}" not found`);
       }
@@ -102,7 +97,7 @@ export const useHarcamalar = () => {
       // Map frontend fields to Supabase schema
       // fasil_id should already be a string from the form, but ensure it's trimmed
       const budgetChapterId = formData.fasil_id ? String(formData.fasil_id).trim() : null;
-      
+
       const payload = {
         id: formData.harcama_id || `exp-${uuidv4()}`,
         activity_id: activity.id,
@@ -114,8 +109,8 @@ export const useHarcamalar = () => {
         status: formData.durum || 'Beklemede',
       };
 
-      console.log('💾 Saving expense to Supabase:', { 
-        budget_chapter_id: budgetChapterId, 
+      console.log('💾 Saving expense to Supabase:', {
+        budget_chapter_id: budgetChapterId,
         formData_fasil_id: formData.fasil_id,
         formData_fasil_id_type: typeof formData.fasil_id,
         payload_budget_chapter_id: payload.budget_chapter_id
@@ -127,7 +122,7 @@ export const useHarcamalar = () => {
         console.error('Error details:', JSON.stringify(error, null, 2));
         throw error;
       }
-      
+
       await loadHarcamalar();
     } else {
       throw new Error('Supabase is required for expense management');
@@ -172,7 +167,7 @@ export const useHarcamalar = () => {
         console.error('Error updating expenses:', error);
         throw error;
       }
-      
+
       await loadHarcamalar();
     } else {
       throw new Error('Supabase is required for expense management');
@@ -194,7 +189,7 @@ export const useHarcamalar = () => {
         console.error('Error deleting expenses:', error);
         throw error;
       }
-      
+
       await loadHarcamalar();
     } else {
       throw new Error('Supabase is required for expense management');
