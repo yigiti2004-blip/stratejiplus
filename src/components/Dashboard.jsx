@@ -8,10 +8,12 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { getCompanyData } from '@/lib/supabase';
+import { LoadingState } from '@/components/ui/LoadingSpinner';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { currentUser } = useAuthContext();
+  const [loading, setLoading] = useState(true);
   
   const [dashboardData, setDashboardData] = useState({
     // Layer 1 - Corporate Status Band
@@ -55,12 +57,14 @@ export default function Dashboard() {
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
+        setLoading(true);
         const companyId = currentUser?.companyId;
         const userId = currentUser?.id || currentUser?.userId;
         const isAdmin = currentUser?.roleId === 'admin';
 
         if (!companyId || !userId) {
           console.warn('Dashboard: Missing user/company info');
+          setLoading(false);
           return;
         }
 
@@ -438,6 +442,8 @@ export default function Dashboard() {
         setDashboardData(newData);
       } catch (error) {
         console.error('Dashboard veri yükleme hatası:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -482,6 +488,14 @@ export default function Dashboard() {
         return 'bg-gray-700 text-gray-200';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white p-8">
+        <LoadingState text="Dashboard verileri yükleniyor..." className="min-h-[60vh]" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">

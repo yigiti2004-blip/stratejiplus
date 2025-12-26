@@ -7,8 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getRiskLevel } from '@/lib/calculations';
 import { RISK_TYPES, RISK_STATUSES } from '@/data/riskTypes';
+import { LoadingState } from '@/components/ui/LoadingSpinner';
 
-const RiskList = ({ risks, onView, onEdit, onDelete }) => {
+const RiskList = ({ risks, onView, onEdit, onDelete, loading = false }) => {
   const [filters, setFilters] = useState({
     search: '',
     type: 'all',
@@ -98,7 +99,9 @@ const RiskList = ({ risks, onView, onEdit, onDelete }) => {
                 </TableRow>
              </TableHeader>
              <TableBody>
-                {filteredRisks.length === 0 ? (
+                {loading ? (
+                   <TableRow><TableCell colSpan={6}><LoadingState text="Riskler yükleniyor..." /></TableCell></TableRow>
+                ) : filteredRisks.length === 0 ? (
                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-gray-400">Kayıt bulunamadı.</TableCell></TableRow>
                 ) : (
                    filteredRisks.map(risk => {

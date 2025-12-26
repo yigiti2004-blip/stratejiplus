@@ -9,12 +9,14 @@ import { cn } from '@/lib/utils';
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { CompanyBadge } from '@/components/CompanyBadge';
 import { getCompanyData, insertCompanyData, updateCompanyData, deleteCompanyData } from '@/lib/supabase';
+import { LoadingState } from '@/components/ui/LoadingSpinner';
 
 // Shared component for Management View
 const SpManagement = ({ currentUser: propCurrentUser }) => {
   const { currentUser: authCurrentUser } = useAuthContext();
   const currentUser = propCurrentUser || authCurrentUser;
   const [activeTab, setActiveTab] = useState('areas');
+  const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
     areas: [], objectives: [], targets: [], indicators: [], activities: [], organizations: [] 
   });
@@ -31,6 +33,7 @@ const SpManagement = ({ currentUser: propCurrentUser }) => {
 
   const refreshData = async () => {
     try {
+      setLoading(true);
       const companyId = currentUser?.companyId;
       const userId = currentUser?.id || currentUser?.userId;
       const isAdmin = currentUser?.roleId === 'admin';
@@ -187,7 +190,11 @@ const SpManagement = ({ currentUser: propCurrentUser }) => {
                    <div className="col-span-2 text-center">Durum</div>
                 </div>
                 
-                {filteredList.length === 0 && <div className="text-center py-8 text-gray-400">Kayıt bulunamadı.</div>}
+                {loading ? (
+                  <LoadingState text="Veriler yükleniyor..." />
+                ) : filteredList.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">Kayıt bulunamadı.</div>
+                ) : null}
 
                 {filteredList.map(item => (
                    <div key={item.id} 

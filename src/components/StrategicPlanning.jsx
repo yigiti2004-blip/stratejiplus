@@ -7,6 +7,7 @@ import { TreeNode } from '@/components/sp/TreeNode';
 import { showSuccessToast } from '@/lib/toast';
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { getCompanyData, updateCompanyData } from '@/lib/supabase';
+import { LoadingState } from '@/components/ui/LoadingSpinner';
 
 const StrategicPlanning = ({ currentUser: propCurrentUser }) => {
   const { currentUser: authCurrentUser } = useAuthContext();
@@ -15,6 +16,7 @@ const StrategicPlanning = ({ currentUser: propCurrentUser }) => {
   const [rawData, setRawData] = useState({}); // Keep raw data for updates
   const [expandedItems, setExpandedItems] = useState(new Set());
   const [selectedItem, setSelectedItem] = useState(null);
+  const [loading, setLoading] = useState(true);
   
   // Edit State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -49,6 +51,7 @@ const StrategicPlanning = ({ currentUser: propCurrentUser }) => {
 
   const loadData = async () => {
     try {
+      setLoading(true);
       const companyId = currentUser?.companyId;
       const userId = currentUser?.id || currentUser?.userId;
       const isAdmin = currentUser?.roleId === 'admin';
@@ -110,6 +113,8 @@ const StrategicPlanning = ({ currentUser: propCurrentUser }) => {
       setTreeData(hierarchy);
     } catch (error) {
       console.error("Error loading tree data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -213,7 +218,9 @@ const StrategicPlanning = ({ currentUser: propCurrentUser }) => {
       <div className="strategic-planning-tree flex-1 overflow-hidden text-gray-900">
         {/* Tree Container */}
         <div className="tree-container shadow-sm bg-white rounded-xl border border-gray-200 overflow-auto">
-          {treeData.length === 0 ? (
+          {loading ? (
+            <LoadingState text="Stratejik plan verileri yükleniyor..." className="min-h-[400px]" />
+          ) : treeData.length === 0 ? (
              <div className="flex flex-col items-center justify-center h-full text-gray-400">
                  <p>Görüntülenecek veri bulunamadı.</p>
                  <p className="text-sm mt-2">Lütfen SP Yönetim panelinden veri girişi yapınız.</p>

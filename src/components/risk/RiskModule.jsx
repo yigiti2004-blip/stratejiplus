@@ -29,7 +29,7 @@ const RiskModule = () => {
 
   // Hook for all data operations
   const { 
-    risks, projects, 
+    risks, projects, loading,
     addRisk, updateRisk, deleteRisk, 
     addProject, updateProject, deleteProject,
     addActionPlan, updateActionPlan, deleteActionPlan,

@@ -7,12 +7,14 @@ export const useRiskData = () => {
   const { currentUser } = useAuthContext();
   const [risks, setRisks] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
   
   // Load data from Supabase - filtered by company
   useEffect(() => {
     const loadData = async () => {
       if (!currentUser) {
         console.log('No currentUser, skipping risk data load');
+        setLoading(false);
         return;
       }
       
@@ -22,11 +24,13 @@ export const useRiskData = () => {
 
       if (!companyId) {
         console.warn('No companyId available for loading risks');
+        setLoading(false);
         return;
       }
 
       console.log('Loading risks for company:', companyId, 'user:', userId);
       try {
+        setLoading(true);
         const [risksData, projectsData] = await Promise.all([
           getCompanyData('risks', userId, companyId, isAdmin),
           getCompanyData('risk_projects', userId, companyId, isAdmin),
@@ -417,6 +421,7 @@ export const useRiskData = () => {
   return {
     risks,
     projects,
+    loading,
     addRisk,
     updateRisk,
     deleteRisk,
