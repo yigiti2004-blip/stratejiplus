@@ -530,7 +530,7 @@ export default function Dashboard() {
                 {formatCurrency(dashboardData.budget.variance)}
               </p>
             </div>
-            <span className={`text-3xl font-bold ${dashboardData.budget.variance > 0 ? 'text-red-400' : 'text-green-400'}`}>₺</span>
+            <span className={`text-3xl font-bold ${dashboardData.budget.variance > 0 ? 'text-red-400' : 'text-green-400'}`}>&#8378;</span>
           </div>
 
           {/* Last Update */}
@@ -616,7 +616,7 @@ export default function Dashboard() {
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-white">Bütçe Kullanımı</h3>
-            <span className="text-2xl font-bold text-green-400" aria-label="Turkish Lira">₺</span>
+            <span className="text-2xl font-bold text-green-400" aria-label="Turkish Lira">&#8378;</span>
           </div>
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center">
