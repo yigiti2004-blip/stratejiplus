@@ -116,6 +116,20 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
       'company_id',
       'created_at',
     ],
+    revisions: [
+      'id',
+      'revision_type',
+      'entity_type',
+      'entity_id',
+      'changes',
+      'reason',
+      'approved_by',
+      'approval_date',
+      'status',
+      'company_id',
+      'created_at',
+      'updated_at',
+    ],
   };
 
   // Validate companyId exists
