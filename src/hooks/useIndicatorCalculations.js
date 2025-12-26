@@ -84,7 +84,17 @@ export const useIndicatorCalculations = () => {
         activities = mapActivities(activitiesRaw);
       }
 
-      const monitoringRecords = JSON.parse(localStorage.getItem('activityMonitoringRecords') || '[]');
+      // Load monitoring records from activity_realization_records
+      let monitoringRecords = [];
+      if (companyId && userId) {
+        const realizationRecordsRaw = await getCompanyData('activity_realization_records', userId, companyId, isAdmin);
+        monitoringRecords = (realizationRecordsRaw || []).map(item => ({
+          id: item.id,
+          activityId: item.activity_id,
+          indicatorValues: {}, // Realization records don't have indicator values directly
+          recordDate: item.record_date || item.created_at,
+        }));
+      }
 
       setData({
         areas,

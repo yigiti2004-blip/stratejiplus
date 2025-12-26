@@ -60,33 +60,13 @@ export const useHarcamalar = () => {
         })));
 
         setHarcamalar(mapped);
-        
-        // Cache to localStorage for offline access
-        try {
-          localStorage.setItem('harcamalar', JSON.stringify(mapped));
-        } catch {
-          // ignore cache errors
-        }
       } else {
-        // Fallback to localStorage
-        try {
-          const stored = localStorage.getItem('harcamalar');
-          if (stored) {
-            setHarcamalar(JSON.parse(stored));
-          } else {
-            setHarcamalar([]);
-          }
-        } catch (e) {
-          console.error('Failed to parse harcamalar from localStorage', e);
-          setHarcamalar([]);
-        }
+        // No Supabase configured - set empty array
+        setHarcamalar([]);
       }
     } catch (error) {
       console.error('Failed to load expenses (harcamalar):', error);
-      // Last-resort fallback
-      try {
-        const stored = localStorage.getItem('harcamalar');
-        if (stored) {
+      setHarcamalar([]);
           setHarcamalar(JSON.parse(stored));
         }
       } catch {
@@ -150,19 +130,7 @@ export const useHarcamalar = () => {
       
       await loadHarcamalar();
     } else {
-      // localStorage fallback
-      const newItem = {
-        ...formData,
-        harcama_id: formData.harcama_id || uuidv4(),
-      };
-      setHarcamalar((prev) => [...prev, newItem]);
-      
-      // Persist to localStorage
-      try {
-        localStorage.setItem('harcamalar', JSON.stringify([...harcamalar, newItem]));
-      } catch (e) {
-        console.error('Failed to save harcamalar to localStorage', e);
-      }
+      throw new Error('Supabase is required for expense management');
     }
   };
 
@@ -207,18 +175,7 @@ export const useHarcamalar = () => {
       
       await loadHarcamalar();
     } else {
-      // localStorage fallback
-      setHarcamalar((prev) =>
-        prev.map((h) => (h.harcama_id === id ? { ...formData, harcama_id: id } : h))
-      );
-      
-      // Persist to localStorage
-      try {
-        const updated = harcamalar.map((h) => (h.harcama_id === id ? { ...formData, harcama_id: id } : h));
-        localStorage.setItem('harcamalar', JSON.stringify(updated));
-      } catch (e) {
-        console.error('Failed to save harcamalar to localStorage', e);
-      }
+      throw new Error('Supabase is required for expense management');
     }
   };
 
@@ -240,16 +197,7 @@ export const useHarcamalar = () => {
       
       await loadHarcamalar();
     } else {
-      // localStorage fallback
-      setHarcamalar((prev) => prev.filter((h) => h.harcama_id !== id));
-      
-      // Persist to localStorage
-      try {
-        const filtered = harcamalar.filter((h) => h.harcama_id !== id);
-        localStorage.setItem('harcamalar', JSON.stringify(filtered));
-      } catch (e) {
-        console.error('Failed to save harcamalar to localStorage', e);
-      }
+      throw new Error('Supabase is required for expense management');
     }
   };
 

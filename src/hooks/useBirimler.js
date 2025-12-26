@@ -25,18 +25,8 @@ export const useBirimler = () => {
           }));
           setBirimler(formatted);
         } else {
-          // Fallback to localStorage seed
-          const storedUnits = JSON.parse(localStorage.getItem('units') || '[]');
-          const storedOrgs =
-            storedUnits.length > 0
-              ? storedUnits
-              : JSON.parse(localStorage.getItem('organizations') || '[]');
-          const formatted = storedOrgs.map((org) => ({
-            birim_id: org.unitId || org.id,
-            birim_adi: org.unitName || org.name,
-            birim_kodu: org.unitCode || org.type || org.code,
-          }));
-          setBirimler(formatted);
+          // No Supabase configured - set empty array
+          setBirimler([]);
         }
       } catch (err) {
         setError(err);

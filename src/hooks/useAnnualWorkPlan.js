@@ -11,15 +11,11 @@ export const useAnnualWorkPlan = () => {
 
   const loadData = useCallback(async () => {
     try {
-      // Load Year Specific Work (still local-only)
-      const storedSpecific = localStorage.getItem('yearSpecificPlannedWork');
-      if (storedSpecific) {
-        setYearSpecificWork(JSON.parse(storedSpecific));
-      } else {
-        setYearSpecificWork([]);
-      }
+      // Year Specific Work should be stored in Supabase annual_work_plan_items table
+      // For now, set empty - this needs a proper Supabase table
+      setYearSpecificWork([]);
 
-      // Load Strategic Plan activities from Supabase when possible
+      // Load Strategic Plan activities from Supabase
       const companyId = currentUser?.companyId;
       const userId = currentUser?.id || currentUser?.userId;
       const isAdmin = currentUser?.roleId === 'admin';
@@ -35,13 +31,7 @@ export const useAnnualWorkPlan = () => {
         }));
         setSpActivities(mapped);
       } else {
-        // Fallback: try legacy localStorage (for non-Supabase mode)
-        const storedSp = localStorage.getItem('activities');
-        if (storedSp) {
-          setSpActivities(JSON.parse(storedSp));
-        } else {
-          setSpActivities([]);
-        }
+        setSpActivities([]);
       }
     } catch (error) {
       console.error('Failed to load annual work plan data', error);
@@ -59,8 +49,9 @@ export const useAnnualWorkPlan = () => {
     };
   }, [loadData]);
 
-  const saveSpecificWork = (workItems) => {
-    localStorage.setItem('yearSpecificPlannedWork', JSON.stringify(workItems));
+  const saveSpecificWork = async (workItems) => {
+    // TODO: Save to Supabase annual_work_plan_items table
+    // For now, just update state
     setYearSpecificWork(workItems);
     window.dispatchEvent(new Event('annual-plan-update'));
   };

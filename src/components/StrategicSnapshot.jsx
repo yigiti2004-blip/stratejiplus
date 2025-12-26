@@ -18,14 +18,34 @@ export default function StrategicSnapshot() {
   const [selectedElement, setSelectedElement] = useState(null);
   const [elementDetails, setElementDetails] = useState(null);
   const [activityTimeline, setActivityTimeline] = useState([]);
+  const [budgetData, setBudgetData] = useState({});
+  const [trackingRecords, setTrackingRecords] = useState([]);
+  const [risksData, setRisksData] = useState([]);
+  const [revisionsData, setRevisionsData] = useState([]);
+  const [budgetChapters, setBudgetChapters] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [allActivities, setAllActivities] = useState([]);
 
   // Diagnostic function - logs data structure for debugging
-  const logTimelineData = (activityId) => {
+  const logTimelineData = async (activityId) => {
     console.log('=== TIMELINE DATA DEBUG ===');
     console.log('Activity ID:', activityId);
     
-    const risks = JSON.parse(localStorage.getItem('risks')) || [];
-    const revisions = JSON.parse(localStorage.getItem('revisions')) || [];
+    const companyId = currentUser?.companyId;
+    const userId = currentUser?.id || currentUser?.userId;
+    const isAdmin = currentUser?.roleId === 'admin';
+    
+    let risks = [];
+    let revisions = [];
+    
+    if (companyId && userId) {
+      const [risksRaw, revisionsRaw] = await Promise.all([
+        getCompanyData('risks', userId, companyId, isAdmin),
+        getCompanyData('revisions', userId, companyId, isAdmin),
+      ]);
+      risks = risksRaw || [];
+      revisions = revisionsRaw || [];
+    }
     
     console.log('Total Risks in system:', risks.length);
     // console.log('Risks data sample:', risks.slice(0, 2));
@@ -270,17 +290,33 @@ export default function StrategicSnapshot() {
           objectives = mapObjectives(objectivesRaw);
           targets = mapTargets(targetsRaw);
           activities = mapActivities(activitiesRaw);
-        } else {
-          // Fallback to existing localStorage data (should be rare now)
-          areas = JSON.parse(localStorage.getItem('strategicAreas') || '[]');
-          objectives = JSON.parse(localStorage.getItem('strategicObjectives') || '[]');
-          targets = JSON.parse(localStorage.getItem('targets') || '[]');
-          activities = JSON.parse(localStorage.getItem('activities') || '[]');
         }
 
-        // --- 2) Budget & other modules (still using existing logic) ---
-        const budgetChapters = JSON.parse(localStorage.getItem('budgetChapters') || '[]');
-        const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+        // --- 2) Budget & other modules from Supabase ---
+        let budgetChapters = [];
+        let expenses = [];
+        
+        if (companyId && userId) {
+          const [budgetChaptersRaw, expensesRaw] = await Promise.all([
+            getCompanyData('budget_chapters', userId, companyId, isAdmin),
+            getCompanyData('expenses', userId, companyId, isAdmin),
+          ]);
+          
+          budgetChapters = (budgetChaptersRaw || []).map(item => ({
+            ...item,
+            id: item.id,
+            code: item.code,
+            name: item.name,
+          }));
+          
+          expenses = (expensesRaw || []).map(item => ({
+            ...item,
+            id: item.id,
+            activityId: item.activity_id,
+            amount: Number(item.amount) || 0,
+            status: item.status,
+          }));
+        }
 
         // Enrich activities with chapter info, budget & responsible unit for compatibility
         activities = activities.map((a) => {
@@ -312,9 +348,41 @@ export default function StrategicSnapshot() {
 
         setStrategies(strategiesData);
 
-        const trackingRecords = JSON.parse(localStorage.getItem('monitoringHistory') || '[]');
-        const risksData = JSON.parse(localStorage.getItem('risks') || '[]');
-        const revisionsData = JSON.parse(localStorage.getItem('revisions') || '[]');
+        // --- 3) Load other modules from Supabase ---
+        let trackingRecords = [];
+        let risksData = [];
+        let revisionsData = [];
+        
+        if (companyId && userId) {
+          const [realizationRecordsRaw, risksRaw, revisionsRaw] = await Promise.all([
+            getCompanyData('activity_realization_records', userId, companyId, isAdmin),
+            getCompanyData('risks', userId, companyId, isAdmin),
+            getCompanyData('revisions', userId, companyId, isAdmin),
+          ]);
+          
+          // Map realization records to tracking records format
+          trackingRecords = (realizationRecordsRaw || []).map(item => ({
+            id: item.id,
+            activityId: item.activity_id,
+            recordDate: item.record_date || item.created_at,
+            completionPercentage: Number(item.completion_percentage) || 0,
+          }));
+          
+          risksData = (risksRaw || []).map(item => ({
+            ...item,
+            id: item.id,
+            name: item.name,
+            relatedRecordId: item.related_record_id,
+            relatedRecordType: item.related_record_type,
+          }));
+          
+          revisionsData = (revisionsRaw || []).map(item => ({
+            ...item,
+            id: item.id,
+            entityId: item.entity_id,
+            entityType: item.entity_type,
+          }));
+        }
 
         // Build budgetData map for lookups
         const budgetData = {};
@@ -647,9 +715,7 @@ export default function StrategicSnapshot() {
     }
   };
 
-  const trackingRecords = JSON.parse(localStorage.getItem('monitoringHistory')) || [];
-  const risksData = JSON.parse(localStorage.getItem('risks')) || [];
-  const revisionsData = JSON.parse(localStorage.getItem('revisions')) || [];
+  // Data is now loaded from Supabase and stored in state above
 
   return (
     <div className="flex h-[calc(100vh-theme(spacing.24))] bg-gray-900 text-white rounded-lg overflow-hidden border border-gray-800">
@@ -666,25 +732,7 @@ export default function StrategicSnapshot() {
                   <div
                     onClick={() => {
                       toggleNode(`area-${area.id}`);
-                      // We need to re-calculate budgetData here or pass it. 
-                      const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-                      const activities = JSON.parse(localStorage.getItem('activities')) || [];
-                      const budgetChapters = JSON.parse(localStorage.getItem('budgetChapters')) || [];
-                      const enrichedActivities = activities.map(a => {
-                         const c = budgetChapters.find(ch => ch.id === a.budgetChapterId);
-                         return { ...a, chapterCode: c?.code, chapterName: c?.name };
-                      });
-                      const bData = {};
-                      enrichedActivities.forEach(act => {
-                           const key = `${act.chapterCode}-${act.chapterName}`;
-                           if (!bData[key]) bData[key] = { activities: {} };
-                           const actExpenses = expenses.filter(e => e.activityId === act.id && e.status !== 'Reddedildi');
-                           const expenseList = actExpenses.map(e => ({ date: e.date, description: e.description, amount: Number(e.amount), notes: '' }));
-                           const actual = actExpenses.reduce((sum, e) => sum + (Number(e.amount)||0), 0);
-                           bData[key].activities[act.id] = { actualSpending: actual, expenses: expenseList };
-                      });
-                      
-                      selectElement('area', area, trackingRecords, bData, risksData, revisionsData);
+                      selectElement('area', area, trackingRecords, budgetData, risksData, revisionsData);
                     }}
                     className={`p-3 rounded cursor-pointer transition ${
                       selectedElement?.element?.id === area.id && selectedElement?.type === 'area'
@@ -708,23 +756,7 @@ export default function StrategicSnapshot() {
                       <div
                         onClick={() => {
                           toggleNode(`objective-${objective.id}`);
-                          const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-                          const activities = JSON.parse(localStorage.getItem('activities')) || [];
-                          const budgetChapters = JSON.parse(localStorage.getItem('budgetChapters')) || [];
-                          const enrichedActivities = activities.map(a => {
-                             const c = budgetChapters.find(ch => ch.id === a.budgetChapterId);
-                             return { ...a, chapterCode: c?.code, chapterName: c?.name };
-                          });
-                          const bData = {};
-                          enrichedActivities.forEach(act => {
-                               const key = `${act.chapterCode}-${act.chapterName}`;
-                               if (!bData[key]) bData[key] = { activities: {} };
-                               const actExpenses = expenses.filter(e => e.activityId === act.id && e.status !== 'Reddedildi');
-                               const expenseList = actExpenses.map(e => ({ date: e.date, description: e.description, amount: Number(e.amount), notes: '' }));
-                               const actual = actExpenses.reduce((sum, e) => sum + (Number(e.amount)||0), 0);
-                               bData[key].activities[act.id] = { actualSpending: actual, expenses: expenseList };
-                          });
-                          selectElement('objective', objective, trackingRecords, bData, risksData, revisionsData);
+                          selectElement('objective', objective, trackingRecords, budgetData, risksData, revisionsData);
                         }}
                         className={`p-3 rounded cursor-pointer transition ${
                           selectedElement?.element?.id === objective.id && selectedElement?.type === 'objective'
@@ -748,23 +780,7 @@ export default function StrategicSnapshot() {
                           <div
                             onClick={() => {
                               toggleNode(`target-${target.id}`);
-                              const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-                              const activities = JSON.parse(localStorage.getItem('activities')) || [];
-                              const budgetChapters = JSON.parse(localStorage.getItem('budgetChapters')) || [];
-                              const enrichedActivities = activities.map(a => {
-                                 const c = budgetChapters.find(ch => ch.id === a.budgetChapterId);
-                                 return { ...a, chapterCode: c?.code, chapterName: c?.name };
-                              });
-                              const bData = {};
-                              enrichedActivities.forEach(act => {
-                                   const key = `${act.chapterCode}-${act.chapterName}`;
-                                   if (!bData[key]) bData[key] = { activities: {} };
-                                   const actExpenses = expenses.filter(e => e.activityId === act.id && e.status !== 'Reddedildi');
-                                   const expenseList = actExpenses.map(e => ({ date: e.date, description: e.description, amount: Number(e.amount), notes: '' }));
-                                   const actual = actExpenses.reduce((sum, e) => sum + (Number(e.amount)||0), 0);
-                                   bData[key].activities[act.id] = { actualSpending: actual, expenses: expenseList };
-                              });
-                              selectElement('target', target, trackingRecords, bData, risksData, revisionsData);
+                              selectElement('target', target, trackingRecords, budgetData, risksData, revisionsData);
                             }}
                             className={`p-3 rounded cursor-pointer transition ${
                               selectedElement?.element?.id === target.id && selectedElement?.type === 'target'
@@ -787,23 +803,7 @@ export default function StrategicSnapshot() {
                             <div
                               key={activity.id}
                               onClick={() => {
-                                const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-                                const activities = JSON.parse(localStorage.getItem('activities')) || [];
-                                const budgetChapters = JSON.parse(localStorage.getItem('budgetChapters')) || [];
-                                const enrichedActivities = activities.map(a => {
-                                   const c = budgetChapters.find(ch => ch.id === a.budgetChapterId);
-                                   return { ...a, chapterCode: c?.code, chapterName: c?.name };
-                                });
-                                const bData = {};
-                                enrichedActivities.forEach(act => {
-                                     const key = `${act.chapterCode}-${act.chapterName}`;
-                                     if (!bData[key]) bData[key] = { activities: {} };
-                                     const actExpenses = expenses.filter(e => e.activityId === act.id && e.status !== 'Reddedildi');
-                                     const expenseList = actExpenses.map(e => ({ date: e.date, description: e.description, amount: Number(e.amount), notes: '' }));
-                                     const actual = actExpenses.reduce((sum, e) => sum + (Number(e.amount)||0), 0);
-                                     bData[key].activities[act.id] = { actualSpending: actual, expenses: expenseList };
-                                });
-                                selectElement('activity', activity, trackingRecords, bData, risksData, revisionsData)
+                                selectElement('activity', activity, trackingRecords, budgetData, risksData, revisionsData);
                               }}
                               className={`ml-4 p-3 rounded cursor-pointer transition ${
                                 selectedElement?.element?.id === activity.id && selectedElement?.type === 'activity'

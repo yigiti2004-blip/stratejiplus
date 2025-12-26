@@ -20,34 +20,77 @@ export default function ReportingModule() {
   const [r3Data, setR3Data] = useState([]);
 
   useEffect(() => {
-    // Load data from localStorage for R1
-    try {
-      const areas = JSON.parse(localStorage.getItem('strategicAreas') || '[]');
-      const objectives = JSON.parse(localStorage.getItem('strategicObjectives') || '[]');
-      const targets = JSON.parse(localStorage.getItem('targets') || '[]');
-      const activities = JSON.parse(localStorage.getItem('activities') || '[]');
-      
-      setStats({ areas, objectives, targets, activities });
-    } catch (error) {
-      console.error("Data loading error (R1):", error);
-    }
-  }, []);
+    const loadData = async () => {
+      try {
+        const companyId = currentUser?.companyId;
+        const userId = currentUser?.id || currentUser?.userId;
+        const isAdmin = currentUser?.roleId === 'admin';
+
+        if (companyId && userId) {
+          const [areasRaw, objectivesRaw, targetsRaw, activitiesRaw] = await Promise.all([
+            getCompanyData('strategic_areas', userId, companyId, isAdmin),
+            getCompanyData('strategic_objectives', userId, companyId, isAdmin),
+            getCompanyData('targets', userId, companyId, isAdmin),
+            getCompanyData('activities', userId, companyId, isAdmin),
+          ]);
+
+          const areas = (areasRaw || []).map(item => ({
+            ...item,
+            companyId: item.company_id || item.companyId,
+          }));
+          const objectives = (objectivesRaw || []).map(item => ({
+            ...item,
+            companyId: item.company_id || item.companyId,
+            strategicAreaId: item.strategic_area_id || item.strategicAreaId,
+          }));
+          const targets = (targetsRaw || []).map(item => ({
+            ...item,
+            companyId: item.company_id || item.companyId,
+            objectiveId: item.objective_id || item.objectiveId,
+          }));
+          const activities = (activitiesRaw || []).map(item => ({
+            ...item,
+            companyId: item.company_id || item.companyId,
+            targetId: item.target_id || item.targetId,
+          }));
+
+          setStats({ areas, objectives, targets, activities });
+        }
+      } catch (error) {
+        console.error("Data loading error (R1):", error);
+      }
+    };
+    loadData();
+  }, [currentUser?.companyId, currentUser?.id, currentUser?.userId, currentUser?.roleId]);
 
   // Load R3 data logic
   useEffect(() => {
     if (activeTab === 'r3') {
-      try {
-        // We need to gather data from different sources to build the R3 view
-        // Ideally 'strategies' (nested structure) or flat lists if available.
-        // Based on previous prompts, let's look for both or reconstruction.
-        // The prompt suggests reading 'strategies', 'trackingRecords', 'evidenceFiles'.
-        
-        // However, looking at previous file structures, data might be flat in:
-        // 'activities', 'targets', 'monitoringHistory' (for tracking), maybe 'evidence' logic is missing or mocked.
-        
-        const activitiesList = JSON.parse(localStorage.getItem('activities') || '[]');
-        const targetsList = JSON.parse(localStorage.getItem('targets') || '[]');
-        const monitoringHistory = JSON.parse(localStorage.getItem('monitoringHistory') || '[]'); // Assuming tracking records are here
+      const loadR3Data = async () => {
+        try {
+          const companyId = currentUser?.companyId;
+          const userId = currentUser?.id || currentUser?.userId;
+          const isAdmin = currentUser?.roleId === 'admin';
+
+          let activitiesList = [];
+          let targetsList = [];
+          let monitoringHistory = [];
+
+          if (companyId && userId) {
+            const [activitiesRaw, targetsRaw, realizationRecordsRaw] = await Promise.all([
+              getCompanyData('activities', userId, companyId, isAdmin),
+              getCompanyData('targets', userId, companyId, isAdmin),
+              getCompanyData('activity_realization_records', userId, companyId, isAdmin),
+            ]);
+
+            activitiesList = activitiesRaw || [];
+            targetsList = targetsRaw || [];
+            monitoringHistory = (realizationRecordsRaw || []).map(item => ({
+              id: item.id,
+              activityId: item.activity_id,
+              recordDate: item.record_date || item.created_at,
+            }));
+          }
         // If 'strategies' exists as a full tree, we can use it. But often we use flat lists in this app.
         // Let's stick to flat lists which are more reliable if the app uses them.
         
@@ -66,7 +109,8 @@ export default function ReportingModule() {
           // Find evidence files (Assuming a key in localStorage or property on tracking)
           // Since evidence might not be fully implemented as a separate store, we check monitoring records for attachments/evidence
           // Or check if 'evidenceFiles' exists as requested in prompt.
-          const evidenceFiles = JSON.parse(localStorage.getItem('evidenceFiles') || '[]');
+          // Evidence files would come from activity_realization_records.evidence_url
+          const evidenceFiles = [];
           const activityEvidence = evidenceFiles.filter(
             file => file.activityId === activity.id
           );

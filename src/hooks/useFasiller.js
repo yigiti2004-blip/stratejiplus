@@ -59,32 +59,13 @@ export const useFasiller = () => {
           }) || [];
 
         setFasiller(mapped);
-        // Mirror to localStorage just for client-side caching
-        try {
-          localStorage.setItem('fasiller', JSON.stringify(mapped));
-        } catch {
-          // ignore cache errors
-        }
       } else {
-        // Fallback: try localStorage, then demo defaults
-        try {
-          const stored = localStorage.getItem('fasiller');
-          if (stored) {
-            setFasiller(JSON.parse(stored));
-          } else {
-            setFasiller(DEFAULT_FASILLER);
-          }
-        } catch (e) {
-          console.error('Failed to parse fasiller from localStorage', e);
-          setFasiller(DEFAULT_FASILLER);
-        }
+        // No Supabase configured - set empty array
+        setFasiller([]);
       }
     } catch (error) {
       console.error('Failed to load budget chapters (fasiller):', error);
-      // Last-resort fallback
-      if (!fasiller || fasiller.length === 0) {
-        setFasiller(DEFAULT_FASILLER);
-      }
+      setFasiller([]);
     }
   }, [currentUser?.companyId, currentUser?.id, currentUser?.userId, currentUser?.roleId]);
 
@@ -132,12 +113,7 @@ export const useFasiller = () => {
       }
       await loadFasiller();
     } else {
-      // localStorage fallback
-      const newFasil = {
-        ...formData,
-        fasil_id: formData.fasil_id || Date.now(),
-      };
-      setFasiller((prev) => [...prev, newFasil]);
+      throw new Error('Supabase is required for budget chapter management');
     }
   };
 
@@ -202,10 +178,7 @@ export const useFasiller = () => {
       }
       await loadFasiller();
     } else {
-      // localStorage fallback
-      setFasiller((prev) =>
-        prev.map((f) => (f.fasil_id === id ? { ...f, ...formData } : f))
-      );
+      throw new Error('Supabase is required for budget chapter management');
     }
   };
 
@@ -226,21 +199,9 @@ export const useFasiller = () => {
       }
       await loadFasiller();
     } else {
-      // localStorage fallback
-      setFasiller((prev) => prev.filter((f) => f.fasil_id !== id));
+      throw new Error('Supabase is required for budget chapter management');
     }
   };
-
-  // Keep local cache in sync
-  useEffect(() => {
-    try {
-      if (fasiller && fasiller.length > 0) {
-        localStorage.setItem('fasiller', JSON.stringify(fasiller));
-      }
-    } catch (e) {
-      console.error('Failed to save fasiller to localStorage:', e);
-    }
-  }, [fasiller]);
 
   return { fasiller, addFasil, updateFasil, deleteFasil };
 };
