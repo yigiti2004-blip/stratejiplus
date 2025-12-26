@@ -199,6 +199,7 @@ function App() {
     else if (path === '/risks') setCurrentView('risks');
     else if (path === '/reporting') setCurrentView('reporting');
     else if (path === '/annual-plan') setCurrentView('annual-plan');
+    else if (path === '/activity-realization') setCurrentView('activity-realization');
     else if (path === '/users') setCurrentView('users');
   }, [location]);
 
@@ -258,6 +259,7 @@ function App() {
     else if (view === 'risks') path = '/risks';
     else if (view === 'reporting') path = '/reporting';
     else if (view === 'annual-plan') path = '/annual-plan';
+    else if (view === 'activity-realization') path = '/activity-realization';
     else if (view === 'users') path = '/users';
     
     navigate(path);
