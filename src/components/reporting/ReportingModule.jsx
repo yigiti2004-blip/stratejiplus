@@ -4,8 +4,11 @@ import { Download, FileText, FileSpreadsheet } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { useAuthContext } from '@/hooks/useAuthContext';
+import { getCompanyData } from '@/lib/supabase';
 
 export default function ReportingModule() {
+  const { currentUser } = useAuthContext();
   const [activeTab, setActiveTab] = useState('r1');
   
   // State for R1
@@ -160,12 +163,14 @@ export default function ReportingModule() {
         });
 
         setR3Data(processedActivities);
-      } catch (error) {
-        console.error('R3 veri yükleme hatası:', error);
-        setR3Data([]);
-      }
+        } catch (error) {
+          console.error('R3 veri yükleme hatası:', error);
+          setR3Data([]);
+        }
+      };
+      loadR3Data();
     }
-  }, [activeTab]);
+  }, [activeTab, currentUser?.companyId, currentUser?.id, currentUser?.userId, currentUser?.roleId]);
 
 
   // --- R1 CALCULATIONS ---
