@@ -16,7 +16,7 @@ export const supabase = supabaseUrl && supabaseAnonKey
 // Helper function to set current user context for RLS
 export const setUserContext = async (userId) => {
   if (!supabase || !userId) return;
-  
+
   try {
     // Set the user context for RLS policies
     await supabase.rpc('set_user_context', { user_id: String(userId) });
@@ -130,6 +130,22 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
       'created_at',
       'updated_at',
     ],
+    annual_work_plan_items: [
+      'id',
+      'year',
+      'activity_id',
+      'planned_start',
+      'planned_end',
+      'actual_start',
+      'actual_end',
+      'status',
+      'notes',
+      'source_type',
+      'responsible_unit',
+      'company_id',
+      'created_at',
+      'updated_at',
+    ],
   };
 
   // Validate companyId exists
@@ -197,11 +213,11 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
   if (table === 'risk_projects') {
     delete snakeCaseData.name;
   }
-  
+
   // Filter out fields that don't exist in the table schema
   const validFields = validColumns[table] || Object.keys(snakeCaseData);
   const filteredData = {};
-  
+
   validFields.forEach(field => {
     if (snakeCaseData.hasOwnProperty(field)) {
       const value = snakeCaseData[field];
@@ -213,7 +229,7 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
       }
     }
   });
-  
+
   // Remove fields that are arrays/objects if they're not in valid columns (like responsiblePersons)
   Object.keys(snakeCaseData).forEach(key => {
     if (!validFields.includes(key)) {
@@ -247,7 +263,7 @@ export const updateCompanyData = async (table, id, updates, userId) => {
   if (!supabase) {
     // Fallback to localStorage
     const existing = JSON.parse(localStorage.getItem(table) || '[]');
-    const updated = existing.map(item => 
+    const updated = existing.map(item =>
       item.id === id ? { ...item, ...updates, updated_at: new Date().toISOString() } : item
     );
     localStorage.setItem(table, JSON.stringify(updated));
