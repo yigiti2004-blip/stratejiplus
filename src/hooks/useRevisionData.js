@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid'; // Assuming we use a simple ID generator or just Math.random for now if uuid not available
+import { useState, useEffect, useCallback } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { useAuthContext } from './useAuthContext';
+import { getCompanyData, insertCompanyData, updateCompanyData, deleteCompanyData } from '@/lib/supabase';
 
 export const useRevisionData = () => {
+  const { currentUser } = useAuthContext();
   const [revisions, setRevisions] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     total: 0,
     byStatus: {},
@@ -11,30 +15,64 @@ export const useRevisionData = () => {
     byYear: {}
   });
 
+  const loadRevisions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const companyId = currentUser?.companyId;
+      const userId = currentUser?.id || currentUser?.userId;
+      const isAdmin = currentUser?.roleId === 'admin';
+
+      if (!companyId || !userId) {
+        console.warn('useRevisionData: Missing user/company info');
+        setRevisions([]);
+        setStats({ total: 0, byStatus: {}, byType: {}, byReason: {}, byYear: {} });
+        setLoading(false);
+        return;
+      }
+
+      // Load revisions from Supabase
+      const revisionsRaw = await getCompanyData('revisions', userId, companyId, isAdmin);
+      
+      // Map Supabase format to frontend format
+      const mappedRevisions = (revisionsRaw || []).map(rev => {
+        const changes = rev.changes || {};
+        return {
+          revisionId: rev.id,
+          itemId: rev.entity_id,
+          itemLevel: rev.entity_type || '',
+          itemCode: changes.item_code || '',
+          itemName: changes.item_name || '',
+          revisionType: rev.revision_type || '',
+          revisionReason: rev.reason || '',
+          reasonText: rev.reason || '',
+          beforeState: changes.before || {},
+          afterState: changes.after || {},
+          changedFields: changes.changed_fields || [],
+          status: rev.status || 'draft',
+          decisionNo: changes.decision_no || '',
+          decisionDate: changes.decision_date || rev.created_at?.split('T')[0] || '',
+          proposedBy: changes.proposed_by || '',
+          approvedBy: rev.approved_by || '',
+          approvalDate: rev.approval_date || null,
+          createdAt: rev.created_at || new Date().toISOString(),
+          updatedAt: rev.updated_at || rev.created_at || new Date().toISOString(),
+        };
+      });
+
+      setRevisions(mappedRevisions);
+      calculateStats(mappedRevisions);
+    } catch (error) {
+      console.error("Failed to load revisions from Supabase:", error);
+      setRevisions([]);
+      setStats({ total: 0, byStatus: {}, byType: {}, byReason: {}, byYear: {} });
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser?.companyId, currentUser?.id, currentUser?.userId, currentUser?.roleId]);
+
   useEffect(() => {
     loadRevisions();
-    // Listen for storage events to sync across tabs/components
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  const handleStorageChange = (e) => {
-    if (e.key === 'sp_revisions') {
-      loadRevisions();
-    }
-  };
-
-  const loadRevisions = () => {
-    try {
-      const stored = localStorage.getItem('sp_revisions');
-      const parsedRevisions = stored ? JSON.parse(stored) : [];
-      setRevisions(parsedRevisions);
-      calculateStats(parsedRevisions);
-    } catch (error) {
-      console.error("Failed to load revisions:", error);
-      setRevisions([]);
-    }
-  };
+  }, [loadRevisions]);
 
   const calculateStats = (data) => {
     const newStats = {
@@ -50,11 +88,11 @@ export const useRevisionData = () => {
       newStats.byStatus[rev.status] = (newStats.byStatus[rev.status] || 0) + 1;
       
       // Type
-      const typeLabel = rev.revisionType?.label || rev.revisionType;
+      const typeLabel = rev.revisionType?.label || rev.revisionType || 'Bilinmeyen';
       newStats.byType[typeLabel] = (newStats.byType[typeLabel] || 0) + 1;
 
       // Reason
-      const reasonLabel = rev.revisionReason?.label || rev.revisionReason;
+      const reasonLabel = rev.revisionReason?.label || rev.revisionReason || 'Bilinmeyen';
       newStats.byReason[reasonLabel] = (newStats.byReason[reasonLabel] || 0) + 1;
 
       // Year
@@ -65,39 +103,66 @@ export const useRevisionData = () => {
     setStats(newStats);
   };
 
-  const saveRevision = (revisionData) => {
+  const saveRevision = async (revisionData) => {
     try {
-      const stored = localStorage.getItem('sp_revisions');
-      const currentRevisions = stored ? JSON.parse(stored) : [];
-      
-      let updatedRevisions;
-      const existingIndex = currentRevisions.findIndex(r => r.revisionId === revisionData.revisionId);
-      
-      if (existingIndex >= 0) {
-        updatedRevisions = [...currentRevisions];
-        updatedRevisions[existingIndex] = { ...updatedRevisions[existingIndex], ...revisionData, updatedAt: new Date().toISOString() };
-      } else {
-        const newRevision = {
-          ...revisionData,
-          revisionId: revisionData.revisionId || `rev-${Date.now()}`,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          status: revisionData.status || 'draft'
-        };
-        updatedRevisions = [newRevision, ...currentRevisions];
+      const companyId = currentUser?.companyId;
+      const userId = currentUser?.id || currentUser?.userId;
+
+      if (!companyId || !userId) {
+        console.error('Missing user/company for saveRevision');
+        throw new Error('Missing user/company for saveRevision');
       }
 
-      localStorage.setItem('sp_revisions', JSON.stringify(updatedRevisions));
-      setRevisions(updatedRevisions);
-      calculateStats(updatedRevisions);
-      
+      const revisionId = revisionData.revisionId || `rev-${uuidv4()}`;
+      const isUpdate = revisionData.revisionId && revisions.some(r => r.revisionId === revisionId);
+
+      // Map frontend format to Supabase schema
+      // Store extra fields in changes JSONB
+      const payload = {
+        id: revisionId,
+        revision_type: revisionData.revisionType?.value || revisionData.revisionType || '',
+        entity_type: revisionData.itemLevel || '',
+        entity_id: revisionData.itemId || '',
+        changes: {
+          before: revisionData.beforeState || {},
+          after: revisionData.afterState || {},
+          changed_fields: revisionData.changedFields || [],
+          item_code: revisionData.itemCode || '',
+          item_name: revisionData.itemName || '',
+          decision_no: revisionData.decisionNo || '',
+          decision_date: revisionData.decisionDate || null,
+          proposed_by: revisionData.proposedBy || null,
+        },
+        reason: revisionData.reasonText || revisionData.revisionReason?.label || revisionData.revisionReason || '',
+        status: revisionData.status || 'draft',
+        approved_by: revisionData.approvedBy || null,
+        approval_date: revisionData.approvalDate || null,
+      };
+
+      console.log('💾 Saving revision to Supabase:', payload);
+
+      if (isUpdate) {
+        const { error } = await updateCompanyData('revisions', revisionId, payload, userId);
+        if (error) {
+          console.error('Error updating revision:', error);
+          throw error;
+        }
+      } else {
+        const { data: result, error } = await insertCompanyData('revisions', payload, userId, companyId);
+        if (error) {
+          console.error('Error inserting revision:', error);
+          throw error;
+        }
+      }
+
+      // Reload data
+      await loadRevisions();
+
       // If approved/applied, trigger actual SP data update
       if (revisionData.status === 'applied') {
-        applyRevisionToSP(revisionData);
+        await applyRevisionToSP(revisionData);
       }
 
-      // Dispatch event for other components
-      window.dispatchEvent(new Event('storage'));
       return true;
     } catch (error) {
       console.error("Failed to save revision:", error);
@@ -105,70 +170,66 @@ export const useRevisionData = () => {
     }
   };
 
-  const applyRevisionToSP = (revision) => {
-    // Logic to update the actual items in localStorage based on itemLevel
-    const map = { 
-        'Alan': 'strategicAreas', 
-        'Amaç': 'strategicObjectives', 
-        'Hedef': 'targets', 
-        'Gösterge': 'indicators', 
-        'Faaliyet': 'activities',
-        'Bütçe & Fasıl': 'fasiller'
+  const applyRevisionToSP = async (revision) => {
+    // Map item level to Supabase table names
+    const tableMap = { 
+      'Alan': 'strategic_areas', 
+      'Amaç': 'strategic_objectives', 
+      'Hedef': 'targets', 
+      'Gösterge': 'indicators', 
+      'Faaliyet': 'activities',
+      'Bütçe & Fasıl': 'budget_chapters'
     };
     
-    const storageKey = map[revision.itemLevel];
-    if (!storageKey) {
-        console.warn(`No storage key mapping found for item level: ${revision.itemLevel}`);
-        return;
+    const table = tableMap[revision.itemLevel];
+    if (!table) {
+      console.warn(`No table mapping found for item level: ${revision.itemLevel}`);
+      return;
     }
 
     try {
-        const currentList = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        const updatedList = currentList.map(item => {
-            // Check for ID match. Some use 'id', fasiller use 'fasil_id'
-            const itemId = item.id || item.fasil_id;
-            
-            if (String(itemId) === String(revision.itemId)) {
-                // Merge changed fields
-                const changes = {};
-                // If it's a cancellation, we might update status, otherwise we update fields
-                if (revision.revisionType?.value === 'cancellation') {
-                    changes.status = 'İptal Edildi';
-                } else if (revision.afterState) {
-                   // Ensure we only update fields that exist in afterState
-                   Object.keys(revision.afterState).forEach(key => {
-                       // Skip metadata keys if any
-                       changes[key] = revision.afterState[key];
-                   });
-                }
-                
-                // Add metadata about the update
-                return { 
-                  ...item, 
-                  ...changes, 
-                  lastRevisionId: revision.revisionId, 
-                  updatedAt: new Date().toISOString() 
-                };
-            }
-            return item;
+      const userId = currentUser?.id || currentUser?.userId;
+      if (!userId) {
+        console.error('Missing user for applyRevisionToSP');
+        return;
+      }
+
+      // Prepare updates
+      const updates = {};
+      
+      // If it's a cancellation, update status
+      if (revision.revisionType?.value === 'cancellation' || revision.revisionType === 'cancellation') {
+        updates.status = 'İptal Edildi';
+      } else if (revision.afterState) {
+        // Update fields from afterState
+        Object.keys(revision.afterState).forEach(key => {
+          updates[key] = revision.afterState[key];
         });
-        localStorage.setItem(storageKey, JSON.stringify(updatedList));
-        
-        // Trigger storage event manually to ensure other components pick up changes immediately
-        window.dispatchEvent(new Event('storage'));
-        
+      }
+
+      console.log('🔄 Applying revision to SP data:', table, revision.itemId, updates);
+
+      const { error } = await updateCompanyData(table, revision.itemId, updates, userId);
+      if (error) {
+        console.error('Error applying revision to SP data:', error);
+      } else {
+        console.log('✅ Revision applied successfully');
+      }
     } catch (e) {
-        console.error("Failed to apply revision to SP data", e);
+      console.error("Failed to apply revision to SP data", e);
     }
   };
 
   const getRevisionsByItemId = (itemId) => {
-    return revisions.filter(r => String(r.itemId) === String(itemId)).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    return revisions
+      .filter(r => String(r.itemId) === String(itemId))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   };
 
   return {
     revisions,
     stats,
+    loading,
     saveRevision,
     getRevisionsByItemId,
     refresh: loadRevisions

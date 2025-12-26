@@ -45,30 +45,35 @@ const AnnualBusinessPlan = ({ currentUser }) => {
   }, [timelineData, sourceFilter, unitFilter]);
 
   // Handlers
-  const handleSave = (data) => {
+  const handleSave = async (data) => {
     try {
       if (editingItem) {
         // Update existing
         if (editingItem.sourceType === 'kurumsal-süreklilik') {
-          updateContinuityActivity(editingItem.sourceId, data);
+          await updateContinuityActivity(editingItem.sourceId, data);
         } else if (editingItem.sourceType === 'yıla-özgü') {
-          updateYearSpecificWork(editingItem.id, data);
+          await updateYearSpecificWork(editingItem.id, data);
         }
         toast({ title: "Başarılı", description: "Kayıt güncellendi." });
       } else {
-        // Create new
+        // Create new - ensure workName is set
+        const saveData = {
+          ...data,
+          workName: data.workName || data.description || 'İsimsiz İş',
+          year: data.year || selectedYear,
+        };
         if (data.sourceType === 'kurumsal-süreklilik') {
-          addContinuityActivity(data);
+          await addContinuityActivity(saveData);
         } else {
-          addYearSpecificWork(data);
+          await addYearSpecificWork(saveData);
         }
         toast({ title: "Başarılı", description: "Yeni kayıt oluşturuldu." });
       }
       setIsFormOpen(false);
       setEditingItem(null);
     } catch (error) {
-      console.error(error);
-      toast({ title: "Hata", description: "İşlem sırasında bir hata oluştu.", variant: "destructive" });
+      console.error('Error saving work item:', error);
+      toast({ title: "Hata", description: error.message || "İşlem sırasında bir hata oluştu.", variant: "destructive" });
     }
   };
 

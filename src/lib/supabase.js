@@ -140,6 +140,7 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
       'actual_end',
       'status',
       'notes',
+      'work_name',
       'source_type',
       'responsible_unit',
       'company_id',

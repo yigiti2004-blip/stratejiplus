@@ -87,20 +87,21 @@ export const useAnnualWorkPlan = () => {
 
     const newId = `awp-${uuidv4()}`;
 
-    // Map frontend fields to Supabase schema
-    const payload = {
-      id: newId,
-      year: Number(data.year) || new Date().getFullYear(),
-      activity_id: data.activityId || null,
-      planned_start: data.startDate || null,
-      planned_end: data.endDate || null,
-      actual_start: null,
-      actual_end: null,
-      status: data.status || 'Planlandı',
-      notes: data.workName || data.description || '',
-      source_type: 'yıla-özgü',
-      responsible_unit: data.responsibleUnit || '',
-    };
+      // Map frontend fields to Supabase schema
+      const payload = {
+        id: newId,
+        year: Number(data.year) || new Date().getFullYear(),
+        activity_id: data.activityId || null,
+        planned_start: data.startDate || null,
+        planned_end: data.endDate || null,
+        actual_start: null,
+        actual_end: null,
+        status: data.status || 'Planlandı',
+        notes: data.description || '',
+        work_name: data.workName || data.description || 'İsimsiz İş',
+        source_type: 'yıla-özgü',
+        responsible_unit: data.responsibleUnit || '',
+      };
 
     console.log('💾 Saving annual work plan item to Supabase:', payload);
 
@@ -125,15 +126,16 @@ export const useAnnualWorkPlan = () => {
       throw new Error('Missing user for updateYearSpecificWork');
     }
 
-    // Map frontend fields to Supabase schema
-    const updates = {
-      year: data.year ? Number(data.year) : undefined,
-      planned_start: data.startDate || undefined,
-      planned_end: data.endDate || undefined,
-      status: data.status || undefined,
-      notes: data.workName || data.description || undefined,
-      responsible_unit: data.responsibleUnit || undefined,
-    };
+      // Map frontend fields to Supabase schema
+      const updates = {
+        year: data.year ? Number(data.year) : undefined,
+        planned_start: data.startDate || undefined,
+        planned_end: data.endDate || undefined,
+        status: data.status || undefined,
+        notes: data.description || undefined,
+        work_name: data.workName || undefined,
+        responsible_unit: data.responsibleUnit || undefined,
+      };
 
     // Remove undefined values
     Object.keys(updates).forEach(key => {
