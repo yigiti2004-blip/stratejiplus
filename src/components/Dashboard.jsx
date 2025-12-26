@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  TrendingUp, AlertTriangle, DollarSign, FileText,
+  TrendingUp, AlertTriangle, FileText,
   ChevronRight, Calendar, Activity, Target, Zap,
   ArrowUpRight, ArrowDownRight, Clock, CheckCircle,
-  AlertCircle, TrendingDown
+  AlertCircle, TrendingDown, Coins
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/hooks/useAuthContext';
@@ -505,7 +505,7 @@ export default function Dashboard() {
           {/* Overall Completion */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm mb-1">Genel Tamamlanma</p>
+              <p className="text-gray-300 text-sm mb-1 font-medium">Genel Tamamlanma</p>
               <p className="text-4xl font-bold text-blue-400">{dashboardData.overallCompletion}%</p>
             </div>
             <TrendingUp size={32} className="text-blue-400 opacity-50" />
@@ -514,7 +514,7 @@ export default function Dashboard() {
           {/* Critical Alarms */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm mb-1">Kritik Alarm</p>
+              <p className="text-gray-300 text-sm mb-1 font-medium">Kritik Alarm</p>
               <p className={`text-4xl font-bold ${dashboardData.criticalAlarms > 0 ? 'text-red-400' : 'text-green-400'}`}>
                 {dashboardData.criticalAlarms}
               </p>
@@ -525,19 +525,19 @@ export default function Dashboard() {
           {/* Total Budget Variance */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm mb-1">Toplam Bütçe Sapması</p>
+              <p className="text-gray-300 text-sm mb-1 font-medium">Toplam Bütçe Sapması</p>
               <p className={`text-3xl font-bold ${dashboardData.budget.variance > 0 ? 'text-red-400' : 'text-green-400'}`}>
                 {formatCurrency(dashboardData.budget.variance)}
               </p>
             </div>
-            <DollarSign size={32} className={dashboardData.budget.variance > 0 ? 'text-red-400 opacity-50' : 'text-green-400 opacity-50'} />
+            <Coins size={32} className={dashboardData.budget.variance > 0 ? 'text-red-400 opacity-50' : 'text-green-400 opacity-50'} />
           </div>
 
           {/* Last Update */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm mb-1">Son Güncelleme</p>
-              <p className="text-lg font-semibold text-gray-200">{dashboardData.lastUpdateDate}</p>
+              <p className="text-gray-300 text-sm mb-1 font-medium">Son Güncelleme</p>
+              <p className="text-lg font-semibold text-gray-100">{dashboardData.lastUpdateDate}</p>
             </div>
             <Calendar size={32} className="text-purple-400 opacity-50" />
           </div>
@@ -549,22 +549,22 @@ export default function Dashboard() {
         {/* Card 1: Performance */}
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">Performans</h3>
+            <h3 className="text-lg font-bold text-white">Performans</h3>
             <Activity size={20} className="text-cyan-400" />
           </div>
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">Tamamlanan</span>
+              <span className="text-gray-300 text-sm font-medium">Tamamlanan</span>
               <span className="font-bold text-cyan-400">{dashboardData.performance.completedActivities}/{dashboardData.performance.totalActivities}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">Geciken</span>
+              <span className="text-gray-300 text-sm font-medium">Geciken</span>
               <span className={`font-bold ${dashboardData.performance.delayedActivities > 0 ? 'text-red-400' : 'text-green-400'}`}>
                 {dashboardData.performance.delayedActivities}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">İzleme Yok (60+ gün)</span>
+              <span className="text-gray-300 text-sm font-medium">İzleme Yok (60+ gün)</span>
               <span className={`font-bold ${dashboardData.performance.unmonitoredActivities > 0 ? 'text-orange-400' : 'text-green-400'}`}>
                 {dashboardData.performance.unmonitoredActivities}
               </span>
@@ -582,24 +582,24 @@ export default function Dashboard() {
         {/* Card 2: Risk Status */}
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">Risk Durumu</h3>
+            <h3 className="text-lg font-bold text-white">Risk Durumu</h3>
             <AlertTriangle size={20} className="text-red-400" />
           </div>
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">Kritik</span>
+              <span className="text-gray-300 text-sm font-medium">Kritik</span>
               <span className="font-bold text-red-400">{dashboardData.risk.critical}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">Yüksek</span>
+              <span className="text-gray-300 text-sm font-medium">Yüksek</span>
               <span className="font-bold text-orange-400">{dashboardData.risk.high}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">Orta</span>
+              <span className="text-gray-300 text-sm font-medium">Orta</span>
               <span className="font-bold text-yellow-400">{dashboardData.risk.medium}</span>
             </div>
             <div className="flex justify-between items-center pt-2 border-t border-gray-700">
-              <span className="text-gray-400 text-sm">Etkisi Düşürülen</span>
+              <span className="text-gray-300 text-sm font-medium">Etkisi Düşürülen</span>
               <span className="font-bold text-green-400">{dashboardData.risk.reduced}</span>
             </div>
           </div>
@@ -615,20 +615,20 @@ export default function Dashboard() {
         {/* Card 3: Budget Usage */}
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">Bütçe Kullanımı</h3>
-            <DollarSign size={20} className="text-green-400" />
+            <h3 className="text-lg font-bold text-white">Bütçe Kullanımı</h3>
+            <Coins size={20} className="text-green-400" />
           </div>
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">Tahmini</span>
-              <span className="font-bold text-gray-300">{formatCurrency(dashboardData.budget.estimated)}</span>
+              <span className="text-gray-300 text-sm font-medium">Tahmini</span>
+              <span className="font-bold text-gray-100">{formatCurrency(dashboardData.budget.estimated)}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">Gerçekleşen</span>
+              <span className="text-gray-300 text-sm font-medium">Gerçekleşen</span>
               <span className="font-bold text-blue-400">{formatCurrency(dashboardData.budget.actual)}</span>
             </div>
             <div className="flex justify-between items-center pt-2 border-t border-gray-700">
-              <span className="text-gray-400 text-sm">Sapma</span>
+              <span className="text-gray-300 text-sm font-medium">Sapma</span>
               <span className={`font-bold ${dashboardData.budget.variance > 0 ? 'text-red-400' : 'text-green-400'}`}>
                 {formatCurrency(dashboardData.budget.variance)}
               </span>
@@ -646,25 +646,25 @@ export default function Dashboard() {
         {/* Card 4: Revision Activity */}
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">Revizyon Hareketleri</h3>
+            <h3 className="text-lg font-bold text-white">Revizyon Hareketleri</h3>
             <FileText size={20} className="text-purple-400" />
           </div>
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">Onay Bekleyen</span>
+              <span className="text-gray-300 text-sm font-medium">Onay Bekleyen</span>
               <span className={`font-bold ${dashboardData.revision.pendingApproval > 0 ? 'text-orange-400' : 'text-green-400'}`}>
                 {dashboardData.revision.pendingApproval}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">Bu Ay Oluşturulan</span>
+              <span className="text-gray-300 text-sm font-medium">Bu Ay Oluşturulan</span>
               <span className="font-bold text-purple-400">{dashboardData.revision.thisMonthCount}</span>
             </div>
             {dashboardData.revision.mostRevisedItem && (
               <div className="pt-2 border-t border-gray-700">
-                <p className="text-gray-400 text-xs mb-1">En Çok Revizyon Gören</p>
-                <p className="text-sm font-semibold text-gray-200 truncate">{dashboardData.revision.mostRevisedItem.name}</p>
-                <p className="text-xs text-gray-500">({dashboardData.revision.mostRevisedItem.count} revizyon)</p>
+                <p className="text-gray-300 text-xs mb-1 font-medium">En Çok Revizyon Gören</p>
+                <p className="text-sm font-semibold text-gray-100 truncate">{dashboardData.revision.mostRevisedItem.name}</p>
+                <p className="text-xs text-gray-400">({dashboardData.revision.mostRevisedItem.count} revizyon)</p>
               </div>
             )}
           </div>
@@ -682,7 +682,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-3 gap-6">
         {/* A) Attention Required */}
         <div className="col-span-2 bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-white">
             <AlertCircle size={20} className="text-red-400" />
             Dikkat Gerektirenler
           </h3>
@@ -691,7 +691,7 @@ export default function Dashboard() {
               {dashboardData.attentionRequired.map((item, idx) => (
                 <div key={idx} className={`flex items-center justify-between p-3 rounded border-l-4 ${getSeverityColor(item.severity)} bg-opacity-20`}>
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-200">{item.code} - {item.name}</p>
+                    <p className="font-semibold text-gray-100">{item.code} - {item.name}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`text-xs font-bold px-2 py-1 rounded ${getSeverityBadgeColor(item.severity)}`}>
                         {item.reason}
@@ -704,7 +704,7 @@ export default function Dashboard() {
                       else if (item.module === 'budget-management') navigate('/budget');
                       else if (item.module === 'risk-management') navigate('/risks');
                     }}
-                    className="ml-2 px-3 py-1 bg-gray-700 text-gray-200 rounded hover:bg-gray-600 transition text-xs flex items-center gap-1"
+                    className="ml-2 px-3 py-1 bg-gray-700 text-gray-100 rounded hover:bg-gray-600 transition text-xs flex items-center gap-1 font-medium"
                   >
                     Detaya Git
                     <ChevronRight size={14} />
@@ -721,7 +721,7 @@ export default function Dashboard() {
         <div className="space-y-6">
           {/* Top 3 Critical Risks */}
           <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-white">
               <Zap size={20} className="text-red-400" />
               En Kritik 3 Risk
             </h3>
@@ -729,11 +729,11 @@ export default function Dashboard() {
               <div className="space-y-3">
                 {dashboardData.topCriticalRisks.map((risk, idx) => (
                   <div key={idx} className="p-3 bg-red-900 bg-opacity-30 rounded border-l-2 border-red-500">
-                    <p className="font-semibold text-gray-200 text-sm">{risk.code}</p>
-                    <p className="text-xs text-gray-400 mt-1 line-clamp-2">{risk.definition}</p>
+                    <p className="font-semibold text-gray-100 text-sm">{risk.code}</p>
+                    <p className="text-xs text-gray-300 mt-1 line-clamp-2">{risk.definition}</p>
                     <div className="flex gap-2 mt-2 text-xs">
-                      <span className="px-2 py-1 bg-red-900 text-red-200 rounded">Etki: {risk.impact}</span>
-                      <span className="px-2 py-1 bg-orange-900 text-orange-200 rounded">Olas: {risk.probability}</span>
+                      <span className="px-2 py-1 bg-red-900 text-red-200 rounded font-medium">Etki: {risk.impact}</span>
+                      <span className="px-2 py-1 bg-orange-900 text-orange-200 rounded font-medium">Olas: {risk.probability}</span>
                     </div>
                   </div>
                 ))}
@@ -745,7 +745,7 @@ export default function Dashboard() {
 
           {/* Top 3 Variance Activities */}
           <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-white">
               <TrendingDown size={20} className="text-orange-400" />
               En Çok Sapma Yaşayan 3 Faaliyet
             </h3>
@@ -753,10 +753,10 @@ export default function Dashboard() {
               <div className="space-y-3">
                 {dashboardData.topVarianceActivities.map((activity, idx) => (
                   <div key={idx} className={`p-3 rounded border-l-2 ${activity.variance > 0 ? 'bg-red-900 bg-opacity-30 border-red-500' : 'bg-green-900 bg-opacity-30 border-green-500'}`}>
-                    <p className="font-semibold text-gray-200 text-sm">{activity.code}</p>
-                    <p className="text-xs text-gray-400 mt-1 line-clamp-1">{activity.name}</p>
+                    <p className="font-semibold text-gray-100 text-sm">{activity.code}</p>
+                    <p className="text-xs text-gray-300 mt-1 line-clamp-1">{activity.name}</p>
                     <div className="flex justify-between items-center mt-2 text-xs">
-                      <span className="text-gray-400">Sapma:</span>
+                      <span className="text-gray-300 font-medium">Sapma:</span>
                       <span className={`font-bold ${activity.variance > 0 ? 'text-red-400' : 'text-green-400'}`}>
                         {formatCurrency(activity.variance)} ({activity.variancePercent}%)
                       </span>
