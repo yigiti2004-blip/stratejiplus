@@ -156,7 +156,8 @@ const RiskModule = () => {
             
             <TabsContent value="list">
                <RiskList 
-                  risks={risks} 
+                  risks={risks}
+                  loading={loading} 
                   onView={handleViewRisk} 
                   onEdit={handleOpenForm} 
                   onDelete={handleDeleteRisk} 
