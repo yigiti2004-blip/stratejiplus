@@ -616,7 +616,7 @@ export default function Dashboard() {
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-white">Bütçe Kullanımı</h3>
-            <span className="text-2xl font-bold text-green-400">₺</span>
+            <span className="text-2xl font-bold text-green-400" aria-label="Turkish Lira">₺</span>
           </div>
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center">
