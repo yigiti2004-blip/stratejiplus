@@ -82,6 +82,12 @@ export default function Navigation({
       roles: ['admin', 'unit-manager', 'view-only']
     },
     {
+      id: 'activity-realization',
+      label: 'Faaliyet Gerçekleşme',
+      icon: CheckCircle,
+      roles: ['admin', 'unit-manager', 'user', 'view-only']
+    },
+    {
       id: 'reporting',
       label: 'Raporlar',
       icon: BarChart3,

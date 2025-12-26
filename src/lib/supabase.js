@@ -101,6 +101,21 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
       'created_at',
       'updated_at',
     ],
+    activity_realization_records: [
+      'id',
+      'activity_id',
+      'record_date',
+      'completion_percentage',
+      'work_performed',
+      'expense_flag',
+      'detailed_description',
+      'evidence_url',
+      'evidence_file_name',
+      'outcome_note',
+      'created_by',
+      'company_id',
+      'created_at',
+    ],
   };
 
   // Validate companyId exists

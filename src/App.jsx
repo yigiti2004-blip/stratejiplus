@@ -15,6 +15,7 @@ import RevisionManagement from '@/components/RevisionManagement';
 import RiskManagement from '@/components/RiskManagement';
 import StrategicPlanMonitoringModule from '@/components/strategicPlanMonitoring/StrategicPlanMonitoringModule';
 import ReportingModule from '@/components/reporting/ReportingModule';
+import ActivityRealizationModule from '@/components/activityRealization/ActivityRealizationModule';
 import Navigation from '@/components/Navigation';
 import { initializeData } from '@/lib/data-initializer';
 import { useAuthContext } from '@/hooks/useAuthContext';
@@ -333,6 +334,7 @@ function App() {
               {currentView === 'risks' && <RiskManagement currentUser={currentUser} />}
               {currentView === 'reporting' && <ReportingModule currentUser={currentUser} />} 
               {currentView === 'annual-plan' && <AnnualBusinessPlan currentUser={currentUser} />}
+              {currentView === 'activity-realization' && <ActivityRealizationModule />}
               {currentView === 'users' && <UserManagementModule />}
             </Suspense>
           </div>
