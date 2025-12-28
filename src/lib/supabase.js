@@ -279,6 +279,12 @@ export const updateCompanyData = async (table, id, updates, userId, companyId = 
     return { data: updated.find(item => item.id === id), error: null };
   }
 
+  // CRITICAL: Require companyId for multi-tenancy
+  if (!companyId) {
+    console.error(`updateCompanyData: companyId is required for table ${table}, id ${id}`);
+    return { data: null, error: { message: 'Company ID is required for multi-tenancy' } };
+  }
+
   await setUserContext(userId);
 
   // Map camelCase to snake_case for Supabase
@@ -317,22 +323,23 @@ export const updateCompanyData = async (table, id, updates, userId, companyId = 
 
   console.log('Updating', table, id, ':', snakeCaseUpdates);
 
-  // Build query with company_id filter for multi-tenancy
-  let query = supabase
+  // CRITICAL: ALWAYS filter by company_id AND id to enforce multi-tenancy
+  // This ensures users can only update records from their own company
+  const { data, error } = await supabase
     .from(table)
     .update(snakeCaseUpdates)
-    .eq('id', id);
-
-  // Add company_id filter if provided (for multi-tenancy)
-  if (companyId) {
-    query = query.eq('company_id', companyId);
-  }
-
-  const { data, error } = await query.select().single();
+    .eq('id', id)
+    .eq('company_id', companyId) // ALWAYS filter by company_id
+    .select()
+    .single();
 
   if (error) {
     console.error(`Error updating ${table}:`, error);
     console.error('Error details:', JSON.stringify(error, null, 2));
+    // If no rows affected, it means the record doesn't exist or belongs to different company
+    if (error.code === 'PGRST116') {
+      return { data: null, error: { message: 'Record not found or access denied (multi-tenancy violation)' } };
+    }
     return { data: null, error };
   }
 
@@ -349,20 +356,21 @@ export const deleteCompanyData = async (table, id, userId, companyId = null) => 
     return { error: null };
   }
 
-  await setUserContext(userId);
-
-  // Build query with company_id filter for multi-tenancy
-  let query = supabase
-    .from(table)
-    .delete()
-    .eq('id', id);
-
-  // Add company_id filter if provided (for multi-tenancy)
-  if (companyId) {
-    query = query.eq('company_id', companyId);
+  // CRITICAL: Require companyId for multi-tenancy
+  if (!companyId) {
+    console.error(`deleteCompanyData: companyId is required for table ${table}, id ${id}`);
+    return { error: { message: 'Company ID is required for multi-tenancy' } };
   }
 
-  const { error } = await query;
+  await setUserContext(userId);
+
+  // CRITICAL: ALWAYS filter by company_id AND id to enforce multi-tenancy
+  // This ensures users can only delete records from their own company
+  const { error } = await supabase
+    .from(table)
+    .delete()
+    .eq('id', id)
+    .eq('company_id', companyId); // ALWAYS filter by company_id
 
   if (error) {
     console.error(`Error deleting from ${table}:`, error);
