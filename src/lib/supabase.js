@@ -35,18 +35,21 @@ export const getCompanyData = async (table, userId, companyId, isAdmin = false) 
     return isAdmin ? data : data.filter(item => item.companyId === companyId);
   }
 
+  // ALWAYS filter by company_id - even for admins, unless explicitly requesting all
+  // This ensures strict multi-tenancy
+  if (!companyId) {
+    console.warn(`getCompanyData called without companyId for table ${table}, returning empty array`);
+    return [];
+  }
+
   // Set user context for RLS
   await setUserContext(userId);
 
-  // Query with RLS automatically applied
+  // ALWAYS filter by company_id - enforce multi-tenancy at database level
   let query = supabase
     .from(table)
-    .select('*');
-
-  // If not admin, manually filter by company_id (RLS might allow all)
-  if (!isAdmin && companyId) {
-    query = query.eq('company_id', companyId);
-  }
+    .select('*')
+    .eq('company_id', companyId); // ALWAYS filter by company_id
 
   const { data, error } = await query.order('created_at', { ascending: false });
 
@@ -55,12 +58,17 @@ export const getCompanyData = async (table, userId, companyId, isAdmin = false) 
     return [];
   }
 
-  // Double-check filtering (in case RLS allows all)
-  if (!isAdmin && companyId && data) {
-    return data.filter(item => (item.company_id || item.companyId) === companyId);
+  // Additional client-side filtering as a safety measure
+  const filtered = (data || []).filter(item => {
+    const itemCompanyId = item.company_id || item.companyId;
+    return itemCompanyId === companyId;
+  });
+
+  if (filtered.length !== (data || []).length) {
+    console.warn(`Data filtering mismatch for ${table}: expected ${data?.length}, got ${filtered.length}`);
   }
 
-  return data || [];
+  return filtered;
 }
 
 // Helper to insert data with company filtering
