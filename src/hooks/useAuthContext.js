@@ -67,6 +67,14 @@ export const useAuthContext = () => {
       }
 
       console.log("Found User Object:", userData);
+      console.log("🔍 User company_id from database:", userData.company_id);
+      
+      // CRITICAL: Verify company_id exists in user record
+      if (!userData.company_id) {
+        console.error("❌ CRITICAL: User record has NULL company_id in database!");
+        console.error("User:", userData.email, userData.full_name);
+        return { success: false, message: 'Kullanıcı kaydında şirket bilgisi bulunamadı. Lütfen yöneticinizle iletişime geçiniz.' };
+      }
       
       // Check if user status is active
       if (userData.status !== 'aktif') {
