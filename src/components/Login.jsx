@@ -20,10 +20,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const result = login(email, password);
+      const result = await login(email, password);
       
       if (!result.success) {
         toast({

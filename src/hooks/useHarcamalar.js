@@ -162,7 +162,8 @@ export const useHarcamalar = () => {
         ...(formData.durum && { status: formData.durum }),
       };
 
-      const { error } = await updateCompanyData('expenses', id, updates, userId);
+      const companyId = currentUser?.companyId;
+      const { error } = await updateCompanyData('expenses', id, updates, userId, companyId);
       if (error) {
         console.error('Error updating expenses:', error);
         throw error;
@@ -184,7 +185,8 @@ export const useHarcamalar = () => {
       !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
 
     if (hasSupabase) {
-      const { error } = await deleteCompanyData('expenses', id, userId);
+      const companyId = currentUser?.companyId;
+      const { error } = await deleteCompanyData('expenses', id, userId, companyId);
       if (error) {
         console.error('Error deleting expenses:', error);
         throw error;

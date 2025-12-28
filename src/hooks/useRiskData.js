@@ -163,6 +163,7 @@ export const useRiskData = () => {
 
   const updateRisk = async (id, updates) => {
     const userId = currentUser?.id || currentUser?.userId;
+    const companyId = currentUser?.companyId;
     
     const updateData = { ...updates };
     if (updates.probability || updates.impact) {
@@ -170,7 +171,7 @@ export const useRiskData = () => {
                          Number(updates.impact || risks.find(r => r.id === id)?.impact);
     }
 
-    const { error } = await updateCompanyData('risks', id, updateData, userId);
+    const { error } = await updateCompanyData('risks', id, updateData, userId, companyId);
     
     if (error) {
       console.error('Error updating risk:', error);
@@ -208,8 +209,9 @@ export const useRiskData = () => {
 
   const deleteRisk = async (id) => {
     const userId = currentUser?.id || currentUser?.userId;
+    const companyId = currentUser?.companyId;
     
-    const { error } = await deleteCompanyData('risks', id, userId);
+    const { error } = await deleteCompanyData('risks', id, userId, companyId);
     
     if (error) {
       console.error('Error deleting risk:', error);
@@ -347,7 +349,8 @@ export const useRiskData = () => {
   const deleteProject = async (id) => {
     const userId = currentUser?.id || currentUser?.userId;
     
-    const { error } = await deleteCompanyData('risk_projects', id, userId);
+    const companyId = currentUser?.companyId;
+    const { error } = await deleteCompanyData('risk_projects', id, userId, companyId);
     
     if (error) {
       console.error('Error deleting project:', error);

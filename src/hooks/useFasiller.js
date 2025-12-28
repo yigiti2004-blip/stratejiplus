@@ -171,7 +171,8 @@ export const useFasiller = () => {
         updates.status = formData.durum || 'Aktif';
       }
 
-      const { error } = await updateCompanyData('budget_chapters', id, updates, userId);
+      const companyId = currentUser?.companyId;
+      const { error } = await updateCompanyData('budget_chapters', id, updates, userId, companyId);
       if (error) {
         console.error('Error updating budget_chapters:', error);
         throw error;
@@ -192,7 +193,8 @@ export const useFasiller = () => {
       !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
 
     if (hasSupabase) {
-      const { error } = await deleteCompanyData('budget_chapters', id, userId);
+      const companyId = currentUser?.companyId;
+      const { error } = await deleteCompanyData('budget_chapters', id, userId, companyId);
       if (error) {
         console.error('Error deleting budget_chapters:', error);
         throw error;

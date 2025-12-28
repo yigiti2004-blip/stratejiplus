@@ -142,7 +142,7 @@ export const useRevisionData = () => {
       console.log('💾 Saving revision to Supabase:', payload);
 
       if (isUpdate) {
-        const { error } = await updateCompanyData('revisions', revisionId, payload, userId);
+        const { error } = await updateCompanyData('revisions', revisionId, payload, userId, companyId);
         if (error) {
           console.error('Error updating revision:', error);
           throw error;
@@ -209,7 +209,7 @@ export const useRevisionData = () => {
 
       console.log('🔄 Applying revision to SP data:', table, revision.itemId, updates);
 
-      const { error } = await updateCompanyData(table, revision.itemId, updates, userId);
+      const { error } = await updateCompanyData(table, revision.itemId, updates, userId, companyId);
       if (error) {
         console.error('Error applying revision to SP data:', error);
       } else {

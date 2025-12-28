@@ -150,7 +150,8 @@ export const useInstitutionalContinuity = () => {
           }
         });
 
-        await updateCompanyData('annual_work_plan_items', id, updates, userId);
+        const companyId = currentUser?.companyId;
+        await updateCompanyData('annual_work_plan_items', id, updates, userId, companyId);
       } catch (error) {
         console.error('Error updating continuity activity in Supabase:', error);
       }
@@ -194,7 +195,8 @@ export const useInstitutionalContinuity = () => {
     // Try to delete from Supabase
     if (userId) {
       try {
-        await deleteCompanyData('annual_work_plan_items', id, userId);
+        const companyId = currentUser?.companyId;
+        await deleteCompanyData('annual_work_plan_items', id, userId, companyId);
       } catch (error) {
         console.error('Error deleting continuity activity from Supabase:', error);
       }

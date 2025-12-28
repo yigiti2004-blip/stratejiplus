@@ -92,8 +92,9 @@ const SpManagement = ({ currentUser: propCurrentUser }) => {
     const tableMap = { areas:'strategic_areas', objectives:'strategic_objectives', targets:'targets', indicators:'indicators', activities:'activities' };
     const table = tableMap[activeTab];
     const userId = currentUser?.id || currentUser?.userId;
+    const companyId = currentUser?.companyId;
     
-    const { error } = await deleteCompanyData(table, item.id, userId);
+    const { error } = await deleteCompanyData(table, item.id, userId, companyId);
     
     if (error) {
       showErrorToast("Silme işlemi başarısız");
@@ -114,7 +115,7 @@ const SpManagement = ({ currentUser: propCurrentUser }) => {
         
         if (editingItem) {
            // Update existing item
-           const { error } = await updateCompanyData(table, editingItem.id, formData, userId);
+           const { error } = await updateCompanyData(table, editingItem.id, formData, userId, companyId);
            if (error) {
              showErrorToast("Güncelleme başarısız");
              return;

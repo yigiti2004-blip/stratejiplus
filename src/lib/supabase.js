@@ -260,7 +260,7 @@ export const insertCompanyData = async (table, data, userId, companyId) => {
 }
 
 // Helper to update data
-export const updateCompanyData = async (table, id, updates, userId) => {
+export const updateCompanyData = async (table, id, updates, userId, companyId = null) => {
   if (!supabase) {
     // Fallback to localStorage
     const existing = JSON.parse(localStorage.getItem(table) || '[]');
@@ -290,8 +290,6 @@ export const updateCompanyData = async (table, id, updates, userId) => {
     actual_value: updates.actualValue || updates.actual_value,
     start_date: updates.startDate || updates.plannedStartDate || updates.start_date,
     end_date: updates.endDate || updates.plannedEndDate || updates.end_date,
-    start_date: updates.startDate || updates.start_date,
-    end_date: updates.endDate || updates.end_date,
   };
 
   // Remove camelCase duplicates
@@ -311,12 +309,18 @@ export const updateCompanyData = async (table, id, updates, userId) => {
 
   console.log('Updating', table, id, ':', snakeCaseUpdates);
 
-  const { data, error } = await supabase
+  // Build query with company_id filter for multi-tenancy
+  let query = supabase
     .from(table)
     .update(snakeCaseUpdates)
-    .eq('id', id)
-    .select()
-    .single();
+    .eq('id', id);
+
+  // Add company_id filter if provided (for multi-tenancy)
+  if (companyId) {
+    query = query.eq('company_id', companyId);
+  }
+
+  const { data, error } = await query.select().single();
 
   if (error) {
     console.error(`Error updating ${table}:`, error);
@@ -328,7 +332,7 @@ export const updateCompanyData = async (table, id, updates, userId) => {
 }
 
 // Helper to delete data
-export const deleteCompanyData = async (table, id, userId) => {
+export const deleteCompanyData = async (table, id, userId, companyId = null) => {
   if (!supabase) {
     // Fallback to localStorage
     const existing = JSON.parse(localStorage.getItem(table) || '[]');
@@ -339,10 +343,18 @@ export const deleteCompanyData = async (table, id, userId) => {
 
   await setUserContext(userId);
 
-  const { error } = await supabase
+  // Build query with company_id filter for multi-tenancy
+  let query = supabase
     .from(table)
     .delete()
     .eq('id', id);
+
+  // Add company_id filter if provided (for multi-tenancy)
+  if (companyId) {
+    query = query.eq('company_id', companyId);
+  }
+
+  const { error } = await query;
 
   if (error) {
     console.error(`Error deleting from ${table}:`, error);

@@ -121,6 +121,7 @@ export const useAnnualWorkPlan = () => {
 
   const updateYearSpecificWork = async (id, data) => {
     const userId = currentUser?.id || currentUser?.userId;
+    const companyId = currentUser?.companyId;
 
     if (!userId) {
       throw new Error('Missing user for updateYearSpecificWork');
@@ -146,7 +147,7 @@ export const useAnnualWorkPlan = () => {
 
     console.log('💾 Updating annual work plan item:', id, updates);
 
-    const { error } = await updateCompanyData('annual_work_plan_items', id, updates, userId);
+    const { error } = await updateCompanyData('annual_work_plan_items', id, updates, userId, companyId);
 
     if (error) {
       console.error('Error updating annual work plan item:', error);
@@ -160,6 +161,7 @@ export const useAnnualWorkPlan = () => {
 
   const deleteYearSpecificWork = async (id) => {
     const userId = currentUser?.id || currentUser?.userId;
+    const companyId = currentUser?.companyId;
 
     if (!userId) {
       throw new Error('Missing user for deleteYearSpecificWork');
@@ -167,7 +169,7 @@ export const useAnnualWorkPlan = () => {
 
     console.log('🗑️ Deleting annual work plan item:', id);
 
-    const { error } = await deleteCompanyData('annual_work_plan_items', id, userId);
+    const { error } = await deleteCompanyData('annual_work_plan_items', id, userId, companyId);
 
     if (error) {
       console.error('Error deleting annual work plan item:', error);
