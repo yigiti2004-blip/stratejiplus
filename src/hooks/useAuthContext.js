@@ -115,6 +115,14 @@ export const useAuthContext = () => {
         // Don't fail login if this update fails
       }
 
+      // CRITICAL: Verify company_id before proceeding
+      if (!sessionUser.companyId) {
+        console.error("❌ CRITICAL ERROR: User logged in but company_id is NULL or missing!");
+        console.error("User data from Supabase:", userData);
+        console.error("Session user object:", sessionUser);
+        return { success: false, message: 'Kullanıcı şirket bilgisi bulunamadı. Lütfen yöneticinizle iletişime geçiniz.' };
+      }
+
       // Store in localStorage for session persistence
       localStorage.setItem('currentUser', JSON.stringify(sessionUser));
       setCurrentUser(sessionUser);
@@ -128,9 +136,8 @@ export const useAuthContext = () => {
       console.log("--- LOGIN COMPLETE ---");
       console.log("Current User:", sessionUser);
       console.log("✅ COMPANY ID VERIFIED:", sessionUser.companyId);
-      if (!sessionUser.companyId) {
-        console.error("❌ CRITICAL: companyId is missing from session user!");
-      }
+      console.log("✅ User ID:", sessionUser.userId || sessionUser.id);
+      console.log("✅ Email:", sessionUser.email);
       return { success: true, user: sessionUser };
     } catch (error) {
       console.error("LOGIN ERROR:", error);
