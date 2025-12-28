@@ -127,6 +127,10 @@ export const useAuthContext = () => {
       
       console.log("--- LOGIN COMPLETE ---");
       console.log("Current User:", sessionUser);
+      console.log("✅ COMPANY ID VERIFIED:", sessionUser.companyId);
+      if (!sessionUser.companyId) {
+        console.error("❌ CRITICAL: companyId is missing from session user!");
+      }
       return { success: true, user: sessionUser };
     } catch (error) {
       console.error("LOGIN ERROR:", error);

@@ -38,7 +38,8 @@ export const getCompanyData = async (table, userId, companyId, isAdmin = false) 
   // ALWAYS filter by company_id - even for admins, unless explicitly requesting all
   // This ensures strict multi-tenancy
   if (!companyId) {
-    console.warn(`getCompanyData called without companyId for table ${table}, returning empty array`);
+    console.error(`❌ CRITICAL: getCompanyData called without companyId for table ${table}, userId: ${userId}`);
+    console.error(`Stack trace:`, new Error().stack);
     return [];
   }
 
@@ -46,6 +47,7 @@ export const getCompanyData = async (table, userId, companyId, isAdmin = false) 
   await setUserContext(userId);
 
   // ALWAYS filter by company_id - enforce multi-tenancy at database level
+  console.log(`🔍 getCompanyData: table=${table}, companyId=${companyId}, userId=${userId}`);
   let query = supabase
     .from(table)
     .select('*')
