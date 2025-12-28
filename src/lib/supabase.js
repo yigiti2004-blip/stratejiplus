@@ -63,13 +63,18 @@ export const getCompanyData = async (table, userId, companyId, isAdmin = false) 
   // Additional client-side filtering as a safety measure
   const filtered = (data || []).filter(item => {
     const itemCompanyId = item.company_id || item.companyId;
-    return itemCompanyId === companyId;
+    const matches = itemCompanyId === companyId;
+    if (!matches && itemCompanyId) {
+      console.warn(`⚠️ Multi-tenancy violation detected in ${table}: item ${item.id} has company_id=${itemCompanyId}, expected ${companyId}`);
+    }
+    return matches;
   });
 
   if (filtered.length !== (data || []).length) {
-    console.warn(`Data filtering mismatch for ${table}: expected ${data?.length}, got ${filtered.length}`);
+    console.error(`❌ Data filtering mismatch for ${table}: expected ${data?.length}, got ${filtered.length} - multi-tenancy violation!`);
   }
 
+  console.log(`✅ getCompanyData: table=${table}, returned ${filtered.length} records for companyId=${companyId}`);
   return filtered;
 }
 
