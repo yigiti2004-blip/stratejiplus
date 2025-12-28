@@ -149,7 +149,8 @@ const StrategicPlanning = ({ currentUser: propCurrentUser }) => {
 
     const userId = currentUser?.id || currentUser?.userId;
     
-    const { error } = await updateCompanyData(table, editingItem.id, formData, userId);
+    const companyId = currentUser?.companyId;
+    const { error } = await updateCompanyData(table, editingItem.id, formData, userId, companyId);
     
     if (error) {
       console.error("Update error:", error);

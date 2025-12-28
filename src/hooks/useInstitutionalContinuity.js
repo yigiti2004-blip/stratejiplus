@@ -170,9 +170,10 @@ export const useInstitutionalContinuity = () => {
     // Try to update in Supabase
     if (userId) {
       try {
+        const companyId = currentUser?.companyId;
         await updateCompanyData('annual_work_plan_items', id, {
           status: isActive ? 'Aktif' : 'Pasif',
-        }, userId);
+        }, userId, companyId);
       } catch (error) {
         console.error('Error toggling continuity status in Supabase:', error);
       }
